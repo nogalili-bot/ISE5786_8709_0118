@@ -69,9 +69,4 @@ public class Vector extends Point {
         double len = length();
         return new Vector(this._xyz.scale(1 / len));
     }
-
-    @Override
-    public String toString() {
-        return "Vector " + _xyz;
-    }
 }
