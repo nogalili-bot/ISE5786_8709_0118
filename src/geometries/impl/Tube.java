@@ -23,11 +23,27 @@ public class Tube extends RadialGeometry {
     }
 
     /**
-     * Returns the normal to the tube.
-     * Note: Current implementation returns null.
+     * Calculates the unit normal vector to the cylinder's surface at a specified point.
+     * * @param point The point on the surface for which the normal is calculated.
+     * @return A normalized Vector perpendicular to the cylinder's surface at the given point.
      */
     @Override
     public Vector getNormal(Point point) {
-        return null;
+        // Find the vector from the axis origin to the given point
+        Vector pMinusP0 = point.subtract(_axis.origin());
+
+        // Calculate the projection of this vector onto the axis direction (scalar value)
+        double t = _axis.direction().dotProduct(pMinusP0);
+
+        // Start with the axis origin
+        Point o = _axis.origin();
+
+        // If the point is not directly at the origin's orthogonal plane,
+        // move 'o' along the axis to find the projection of 'point' onto the axis.
+        if (t != 0) {
+            o = o.add(_axis.direction().scale(t));
+        }
+        // The normal is the vector from the projected point 'o' on the axis to the surface point
+        return point.subtract(o).normalize();
     }
 }

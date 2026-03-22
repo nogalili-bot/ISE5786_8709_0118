@@ -20,12 +20,16 @@ public class Sphere extends RadialGeometry {
         this._center = center;
     }
 
+
     /**
-     * Returns the normal to the sphere.
-     * Note: Current implementation returns null.
+     * Calculates the unit normal vector to the sphere's surface at a specified point.
+     * For a sphere, the normal is simply the direction from the center to the point.
+     * * @param point A point on the surface of the sphere.
+     * @return A normalized Vector perpendicular to the sphere's surface at the given point.
      */
     @Override
     public Vector getNormal(Point point) {
-        return null;
+        // The normal vector is (Point - Center) normalized
+        return point.subtract(_center).normalize();
     }
 }
