@@ -55,4 +55,28 @@ class RayTests {
         // EP03: Test rays with different direction
         assertNotEquals(new Ray(p1, v1), new Ray(p1, new Vector(0, 1, 0)), "Rays with different directions should not be equal");
     }
+
+    /**
+     * Test method for {@link primitives.Ray#getPoint(double)}.
+     */
+    @Test
+    void testGetPoint() {
+        Ray ray = new Ray(new Point(1, 1, 1), new Vector(1, 0, 0));
+
+        // ============ Equivalence Partitions Tests ==============
+
+        // TC01: t is positive (point in the direction of the ray)
+        assertEquals(new Point(2, 1, 1), ray.getPoint(1),
+                "TC01: getPoint() with positive t failed");
+
+        // TC02: t is negative (point in the opposite direction)
+        assertEquals(new Point(0, 1, 1), ray.getPoint(-1),
+                "TC02: getPoint() with negative t failed");
+
+        // =============== Boundary Values Tests ==================
+
+        // TC11: t is zero (the point is the origin of the ray)
+        assertEquals(new Point(1, 1, 1), ray.getPoint(0),
+                "TC11: getPoint() with t=0 should return the ray origin");
+    }
 }

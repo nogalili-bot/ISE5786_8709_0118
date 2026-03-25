@@ -3,6 +3,11 @@ package geometries.impl;
 import geometries.api.Geometry;
 import primitives.Point;
 import primitives.Vector;
+import primitives.Ray;
+
+import java.util.List;
+import static primitives.Util.isZero;
+import static primitives.Util.alignZero;
 
 /**
  * Represents a flat plane in 3D space.
@@ -70,5 +75,38 @@ public class Plane extends Geometry {
      */
     public Vector getNormal() {
         return _normal;
+    }
+
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        Point p0 = ray.origin();
+        Vector v = ray.direction();
+        Vector n = _normal;
+
+        // 1. Calculate the denominator: n * v
+        double nv = n.dotProduct(v);
+
+        // If the ray is parallel to the plane (n * v == 0), no intersections.
+        if (isZero(nv)) {
+            return null;
+        }
+
+        // 2. Calculate the numerator: n * (Q0 - P0)
+        Vector q0MinusP0;
+        try {
+            q0MinusP0 = _point.subtract(p0);
+        } catch (IllegalArgumentException e) {
+            // P0 is exactly on the plane's reference point Q0
+            return null;
+        }
+
+        double nQ0MinusP0 = n.dotProduct(q0MinusP0);
+
+        // 3. Calculate t - This is where 't' is defined!
+        double t = alignZero(nQ0MinusP0 / nv);
+
+        // 4. Return intersection only if t > 0
+        // REFACTORING: Now 't' is recognized and passed to getPoint()
+        return t <= 0 ? null : List.of(ray.getPoint(t));
     }
 }

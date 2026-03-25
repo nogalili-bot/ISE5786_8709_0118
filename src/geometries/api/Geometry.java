@@ -7,7 +7,7 @@ import primitives.Vector;
  * Interface for all geometric objects in the system.
  * All geometries must implement a method to find their normal vector.
  */
-public abstract class Geometry {
+public abstract class Geometry extends Intersectable {
 
     /**
      * Calculates the normal vector to the geometry at a given point.

@@ -39,4 +39,24 @@ public final class Ray {
     public String toString() {
         return "Ray: origin=" + _origin + ", direction=" + _direction;
     }
+
+    /**
+     * Calculates a point on the ray's line at a specific distance from the origin.
+     * The method uses the formula: P = P0 + t * v
+     * This implementation safely handles cases where t is zero or near zero using exception handling.
+     * * @param t a scalar value representing the distance from the origin.
+     * Can be positive, negative, or zero.
+     * @return the calculated {@link Point} on the line.
+     */
+    public Point getPoint(double t) {
+        try {
+            // The safe way: attempt to scale the direction and add to origin.
+            // If t is 0 (or creates a zero vector), scale() throws IllegalArgumentException.
+            return _origin.add(_direction.scale(t));
+        } catch (IllegalArgumentException ignore) {
+            // If an exception occurs, it means the result of scaling was a zero vector,
+            // so the point is simply the origin of the ray.
+            return _origin;
+        }
+    }
 }

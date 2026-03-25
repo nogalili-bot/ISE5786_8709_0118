@@ -4,6 +4,8 @@ import primitives.Ray;
 import primitives.Vector;
 import primitives.Point;
 
+import java.util.List;
+
 /**
  * Represents an infinite tube in 3D space.
  * Defined by an axis ray and a radius.
@@ -28,22 +30,20 @@ public class Tube extends RadialGeometry {
      * @return A normalized Vector perpendicular to the cylinder's surface at the given point.
      */
     @Override
-    public Vector getNormal(Point point) {
-        // Find the vector from the axis origin to the given point
-        Vector pMinusP0 = point.subtract(_axis.origin());
+    public Vector getNormal(Point p) {
+        // Determination of t: t = v * (P - P0)
+        double t = _axis.direction().dotProduct(p.subtract(_axis.origin()));
 
-        // Calculate the projection of this vector onto the axis direction (scalar value)
-        double t = _axis.direction().dotProduct(pMinusP0);
+        // REFACTORING: Instead of manual calculation: _axisRay.origin().add(_axisRay.direction().scale(t))
+        // We use the safe getPoint method:
+        Point o = _axis.getPoint(t);
 
-        // Start with the axis origin
-        Point o = _axis.origin();
+        // The normal is the vector from o to p
+        return p.subtract(o).normalize();
+    }
 
-        // If the point is not directly at the origin's orthogonal plane,
-        // move 'o' along the axis to find the projection of 'point' onto the axis.
-        if (t != 0) {
-            o = o.add(_axis.direction().scale(t));
-        }
-        // The normal is the vector from the projected point 'o' on the axis to the surface point
-        return point.subtract(o).normalize();
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        return null;
     }
 }
