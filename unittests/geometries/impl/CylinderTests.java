@@ -62,4 +62,5 @@ class CylinderTests {
         assertEquals(new Vector(0, 0, 1), cylinder.getNormal(new Point(1, 0, 2)),
                 "Normal on the edge of the second base is incorrect");
     }
+    
 }

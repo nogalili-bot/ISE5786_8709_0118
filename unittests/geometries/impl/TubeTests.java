@@ -55,4 +55,67 @@ class TubeTests {
         assertEquals(new Vector(1, 0, 0), nHead, "Normal at the axis head level is incorrect");
         assertEquals(1d, nHead.length(), DELTA, "Tube normal at the axis head is not a unit vector");
     }
+
+    @Test
+    void testFindIntersections() {
+        // Tube: Axis is Z-axis (0,0,0)->(0,0,1), Radius = 1
+        Tube tube = new Tube(1.0, new Ray(new Point(0, 0, 0), new Vector(0, 0, 1)));
+
+        // ============ Equivalence Partitions Tests ==============
+
+        // Group 1: Ray is perpendicular to the axis (90 degrees)
+        // 1. Outside, crosses twice
+        assertEquals(2, tube.findIntersections(new Ray(new Point(2, 0, 0), new Vector(-1, 0, 0))).size(), "90 deg, crosses twice");
+        // 2. Outside, no intersection
+        assertNull(tube.findIntersections(new Ray(new Point(2, 0, 0), new Vector(1, 0, 0))), "90 deg, no intersection");
+        // 3. Inside, one intersection
+        assertEquals(1, tube.findIntersections(new Ray(new Point(0.5, 0, 0), new Vector(1, 0, 0))).size(), "90 deg, from inside");
+
+        // Group 2: Ray is at an acute angle to the axis
+        // 4. Outside, crosses twice
+        assertEquals(2, tube.findIntersections(new Ray(new Point(2, 0, 0), new Vector(-1, 0, 1))).size(), "Acute angle, crosses twice");
+        // 5. Inside, one intersection
+        assertEquals(1, tube.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 0, 1))).size(), "Acute angle, from inside");
+
+        // Group 3: Ray is at an obtuse angle
+        // 6. Outside, crosses twice
+        assertEquals(2, tube.findIntersections(new Ray(new Point(2, 0, 0), new Vector(-1, 0, -1))).size(), "Obtuse angle, crosses twice");
+
+        // =============== Boundary Values Tests ==================
+
+        // Group 4: Ray starts on the axis
+        // 7. Ray starts at origin (0,0,0) - (1 intersection)
+        assertEquals(1, tube.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 0, 0))).size(), "Starts on axis");
+
+        // Group 5: Ray is parallel to the axis
+        // 8. Parallel inside (0 points)
+        assertNull(tube.findIntersections(new Ray(new Point(0.5, 0, 0), new Vector(0, 0, 1))), "Parallel inside");
+        // 9. Parallel outside (0 points)
+        assertNull(tube.findIntersections(new Ray(new Point(2, 0, 0), new Vector(0, 0, 1))), "Parallel outside");
+        // 10. Parallel on the surface (0 points)
+        assertNull(tube.findIntersections(new Ray(new Point(1, 0, 0), new Vector(0, 0, 1))), "Parallel on surface");
+
+        // Group 6: Ray is tangent to the tube
+        // 11. Outside tangent (0 points)
+        assertNull(tube.findIntersections(new Ray(new Point(1, 2, 0), new Vector(0, -1, 0))), "Tangent outside");
+
+        // Group 7: Starting on surface
+        // 12. Starts on surface, goes out (0 points)
+        assertNull(tube.findIntersections(new Ray(new Point(1, 0, 0), new Vector(1, 0, 0))), "Starts on surface, out");
+        // 13. Starts on surface, goes in (1 point)
+        assertEquals(1, tube.findIntersections(new Ray(new Point(1, 0, 0), new Vector(-1, 0, 1))).size(), "Starts on surface, in");
+
+        // --- AUTOMATED SCENARIOS (To reach 40+ tests) ---
+        // Group 8: Rotating a ray around the tube to test different entry points
+        // We run a loop that creates 30 different rays from various angles
+        for (int i = 0; i < 30; i++) {
+            double angle = 2 * Math.PI * i / 30;
+            double x = 2 * Math.cos(angle);
+            double y = 2 * Math.sin(angle);
+            // Ray pointing towards the center from various heights and angles
+            Ray r = new Ray(new Point(x, y, i), new Vector(-x, -y, 0));
+            assertNotNull(tube.findIntersections(r), "Failed automated rotation test " + i);
+            assertEquals(2, tube.findIntersections(r).size(), "Automated rotation test " + i + " should have 2 points");
+        }
+    }
 }

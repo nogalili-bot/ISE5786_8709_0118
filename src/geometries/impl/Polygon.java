@@ -78,8 +78,50 @@ public class Polygon extends Geometry {
    @Override
    public Vector getNormal(Point point) { return _plane.getNormal(point); }
 
-   @Override
-   public List<Point> findIntersections(Ray ray) {
-        return null;
-   }
+    /**
+     * Finds the intersections of a ray with the polygon.
+     * @param ray The ray to intersect with the polygon.
+     * @return A list containing the intersection point, or null if there are no intersections.
+     */
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        // Step 1: Check for intersection with the plane containing the polygon
+        List<Point> intersections = _plane.findIntersections(ray);
+        if (intersections == null) return null;
+
+        Point p0 = ray.origin();
+        Vector v = ray.direction();
+
+        // Step 2: Verify if the intersection point is inside the polygon boundaries.
+        // We use the algorithm of checking if the ray's direction is within the
+        // pyramid formed by the ray's origin and the polygon's edges.
+
+        int size = _vertices.size();
+
+        // Vectors from the ray's origin to the polygon vertices
+        Vector v1 = _vertices.get(size - 1).subtract(p0);
+        Vector v2 = _vertices.get(0).subtract(p0);
+
+        // Calculate the first normal (to the side-plane formed by the edge and the ray)
+        // and its dot product with the ray's direction.
+        Vector n = v1.crossProduct(v2).normalize();
+        double s1 = primitives.Util.alignZero(v.dotProduct(n));
+
+        // If the dot product is zero, the ray hits the edge or vertex boundary
+        if (isZero(s1)) return null;
+
+        // Iterate through all other edges to ensure consistent orientation (same sign)
+        for (int i = 1; i < size; i++) {
+            v1 = v2;
+            v2 = _vertices.get(i).subtract(p0);
+            n = v1.crossProduct(v2).normalize();
+            double s2 = primitives.Util.alignZero(v.dotProduct(n));
+
+            // If the sign changes or is zero, the point is outside or on the boundary
+            if (isZero(s2) || (s1 > 0) != (s2 > 0)) return null;
+        }
+
+        // All cross products had the same sign, meaning the point is inside
+        return intersections;
+    }
 }
