@@ -78,7 +78,7 @@ class SphereTests {
         List<Point> result3 = sphere.findIntersections(ray3);
         assertNotNull(result3, ERROR_SPHERE_INTERSECTION);
         assertEquals(1, result3.size(), ERROR_SPHERE_INTERSECTION);
-        assertEquals(new Point(2, 0, 0), result3.get(0), ERROR_SPHERE_INTERSECTION);
+        assertEquals(new Point(2, 0, 0), result3.getFirst(), ERROR_SPHERE_INTERSECTION);
 
         // TC04: Ray starts after the sphere (0 points)
         Ray ray4 = new Ray(new Point(3, 0, 0), new Vector(1, 0, 0));
@@ -87,12 +87,12 @@ class SphereTests {
         // =============== Boundary Values Tests ==================
 
         // **** Group 1: Ray's line crosses the sphere (but not the center)
-        // TC11: Ray starts at sphere and goes inside (1 points)
+        // TC11: Ray starts at sphere and goes inside (1 point)
         Ray ray11 = new Ray(new Point(1, -1, 0), new Vector(0, 1, 0));
         List<Point> result11 = sphere.findIntersections(ray11);
         assertNotNull(result11, ERROR_SPHERE_INTERSECTION);
         assertEquals(1, result11.size(), ERROR_SPHERE_INTERSECTION);
-        assertEquals(new Point(1, 1, 0), result11.get(0), ERROR_SPHERE_INTERSECTION);
+        assertEquals(new Point(1, 1, 0), result11.getFirst(), ERROR_SPHERE_INTERSECTION);
 
         // TC12: Ray starts at sphere and goes outside (0 points)
         assertNull(sphere.findIntersections(new Ray(new Point(1, -1, 0), new Vector(0, -1, 0))), ERROR_SPHERE_INTERSECTION);
@@ -105,15 +105,15 @@ class SphereTests {
         assertEquals(2, result13.size(), ERROR_SPHERE_INTERSECTION);
         assertEquals(List.of(new Point(1, -1, 0), new Point(1, 1, 0)), result13, ERROR_SPHERE_INTERSECTION);
 
-        // TC14: Ray starts at sphere and goes inside (1 points)
+        // TC14: Ray starts at sphere and goes inside (1 point)
         Ray ray14 = new Ray(new Point(1, -1, 0), new Vector(0, 1, 0));
         assertEquals(1, sphere.findIntersections(ray14).size(), ERROR_SPHERE_INTERSECTION);
 
-        // TC15: Ray starts inside (not center) (1 points)
+        // TC15: Ray starts inside (not center) (1 point)
         Ray ray15 = new Ray(new Point(1, 0.5, 0), new Vector(0, 1, 0));
         assertEquals(1, sphere.findIntersections(ray15).size(), ERROR_SPHERE_INTERSECTION);
 
-        // TC16: Ray starts at the center (1 points)
+        // TC16: Ray starts at the center (1 point)
         Ray ray16 = new Ray(new Point(1, 0, 0), new Vector(0, 1, 0));
         assertEquals(1, sphere.findIntersections(ray16).size(), ERROR_SPHERE_INTERSECTION);
 

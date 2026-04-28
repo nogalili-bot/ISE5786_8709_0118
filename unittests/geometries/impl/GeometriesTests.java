@@ -3,7 +3,6 @@ package geometries.impl;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import primitives.*;
-import java.util.List;
 
 /**
  * Testing Geometries

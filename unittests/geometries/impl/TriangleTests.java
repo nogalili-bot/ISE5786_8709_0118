@@ -68,7 +68,7 @@ class TriangleTests {
         List<Point> result1 = triangle.findIntersections(ray1);
         assertNotNull(result1, ERROR_TRIANGLE_INTERSECTION);
         assertEquals(1, result1.size(), ERROR_TRIANGLE_INTERSECTION);
-        assertEquals(new Point(0.1, 0.1, 0), result1.get(0), ERROR_TRIANGLE_INTERSECTION);
+        assertEquals(new Point(0.1, 0.1, 0), result1.getFirst(), ERROR_TRIANGLE_INTERSECTION);
 
         // TC02: Outside triangle - against edge (0 points)
         Ray ray2 = new Ray(new Point(1, 1, -1), new Vector(0, 0, 1));
