@@ -11,7 +11,7 @@ import geometries.impl.*;
 /**
  * Integration tests for Camera rays generation and Geometries intersections.
  */
-public class CameraIntersectionIntegration {
+public class CameraIntersectionIntegrationTests {
 
     /** Camera resolution for integration tests */
     private static final int NX = 3;

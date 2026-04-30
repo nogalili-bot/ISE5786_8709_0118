@@ -44,7 +44,7 @@ public final class Ray {
      * Calculates a point on the ray's line at a specific distance from the origin.
      * The method uses the formula: P = P0 + t * v
      * This implementation safely handles cases where t is zero or near zero using exception handling.
-     * * @param t a scalar value representing the distance from the origin.
+     * @param t a scalar value representing the distance from the origin.
      * Can be positive, negative, or zero.
      * @return the calculated {@link Point} on the line.
      */
@@ -59,4 +59,29 @@ public final class Ray {
             return _origin;
         }
     }
+
+    /**
+     * Finds the closest point to the ray's origin from a list of points.
+     * @param points List of points to check
+     * @return The closest point, or null if the list is null
+     */
+    public Point findClosestPoint(java.util.List<Point> points) {
+        if (points == null) // Check only for null as per instructions
+            return null;
+
+        Point closestPoint = null;
+        double minDistanceSquared = Double.POSITIVE_INFINITY; // Use POSITIVE_INFINITY as requested
+
+        for (Point p : points) {
+            // Using squared distance for efficiency instead of distance
+            double distanceSquared = _origin.distanceSquared(p);
+
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
+                closestPoint = p;
+            }
+        }
+        return closestPoint;
+    }
 }
+

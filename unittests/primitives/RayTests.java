@@ -79,4 +79,40 @@ class RayTests {
         assertEquals(new Point(1, 1, 1), ray.getPoint(0),
                 "TC11: getPoint() with t=0 should return the ray origin");
     }
+
+    // ... (שאר המחלקה RayTests נשארת ללא שינוי)
+
+    /**
+     * Test method for {@link primitives.Ray#findClosestPoint(java.util.List)}.
+     */
+    @Test
+    void testFindClosestPoint() {
+        Ray ray = new Ray(new Point(0, 0, 1), new Vector(0, 0, -1));
+        Point p1 = new Point(0, 0, 2);
+        Point p2 = new Point(0, 0, 3);
+        Point p3 = new Point(0, 0, 4);
+
+        // ============ Equivalence Partitions Tests =============
+
+        // TC01: The closest point is in the middle of the list
+        java.util.List<Point> points = java.util.List.of(p2, p1, p3);
+        assertEquals(p1, ray.findClosestPoint(points),
+                "TC01: Middle point is closest failed");
+
+        // =============== Boundary Values Tests =================
+
+        // TC11: The list is null[cite: 1]
+        assertNull(ray.findClosestPoint(null),
+                "TC11: Null list should return null");
+
+        // TC12: The first point is the closest[cite: 1]
+        points = java.util.List.of(p1, p2, p3);
+        assertEquals(p1, ray.findClosestPoint(points),
+                "TC12: First point is closest failed");
+
+        // TC13: The last point is the closest[cite: 1]
+        points = java.util.List.of(p2, p3, p1);
+        assertEquals(p1, ray.findClosestPoint(points),
+                "TC13: Last point is closest failed");
+    }
 }

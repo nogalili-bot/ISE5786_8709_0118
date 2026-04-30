@@ -3,6 +3,7 @@ package renderer;
 import primitives.*;
 import static primitives.Util.*;
 import java.util.MissingResourceException;
+import scene.*;
 
 /**
  * Camera class representing a viewpoint in 3D space.
@@ -35,6 +36,9 @@ public class Camera implements Cloneable {
      * Private default constructor to prevent direct instantiation.
      */
     private Camera() {}
+
+    private ImageWriter _imageWriter;
+    private RayTracerBase _rayTracer;
 
     /**
      * Returns a new Builder instance for Camera construction.
@@ -188,6 +192,12 @@ public class Camera implements Cloneable {
             checkResolution();
             checkLocationAndDirection();
             checkViewPlane();
+
+            if (_camera._imageWriter == null)
+                throw new MissingResourceException("Missing ImageWriter", "Camera", "imageWriter");
+            if (_camera._rayTracer == null)
+                throw new MissingResourceException("Missing RayTracer", "Camera", "rayTracer");
+
             try {
                 return (Camera) _camera.clone();
             } catch (CloneNotSupportedException _) {
@@ -278,5 +288,93 @@ public class Camera implements Cloneable {
 
             return vRot;
         }
+
+        /**
+         * Sets the ImageWriter for the camera.
+         * @param imageWriter The image writer to use.
+         * @return The builder instance.
+         */
+        public Builder setImageWriter(ImageWriter imageWriter) {
+            this._camera._imageWriter = imageWriter;
+            return this;
+        }
+
+        /**
+         * Sets the RayTracer using a Scene and a RayTracerType.
+         * This matches the signature required by RenderTests.
+         */
+        public Builder setRayTracer(Scene scene, RayTracerType type) {
+            if (type == RayTracerType.SIMPLE) {
+                this._camera._rayTracer = new SimpleRayTracer(scene);
+            }
+            return this;
+        }
     }
+
+    /**
+     * Renders the image by casting rays through all pixels.
+     * @return The camera object itself
+     */
+    public Camera renderImage() {
+        // Validation: ensure all resources are provided
+        if (_imageWriter == null)
+            throw new MissingResourceException("Missing ImageWriter", "Camera", "");
+        if (_rayTracer == null)
+            throw new MissingResourceException("Missing RayTracer", "Camera", "");
+
+        // Iterate over all pixels (i for rows, j for columns)
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                castRay(j, i);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Helper method to cast a ray through a pixel and color it.
+     * @param j column index
+     * @param i row index
+     */
+    private void castRay(int j, int i) {
+        // Using your existing constructRay(j, i) method
+        Ray ray = constructRay(j, i);
+        // Trace the ray to get the color
+        Color pixelColor = _rayTracer.traceRay(ray);
+        // Write the pixel to the image
+        _imageWriter.writePixel(j, i, pixelColor);
+    }
+
+    /**
+     * Prints a grid on top of the existing image.
+     * @param interval The size of each grid square
+     * @param color    The color of the grid lines
+     * @return The camera object itself
+     */
+    public Camera printGrid(int interval, Color color) {
+        if (_imageWriter == null)
+            throw new MissingResourceException("Missing ImageWriter", "Camera", "");
+
+        for (int i = 0; i < nY; i++) {
+            for (int j = 0; j < nX; j++) {
+                // If the coordinate is a multiple of interval, it's a grid line
+                if (i % interval == 0 || j % interval == 0) {
+                    _imageWriter.writePixel(j, i, color);
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Finalizes the image creation by calling the image writer with a file name.
+     * @param fileName the name of the output file
+     */
+    public void writeToImage(String fileName) {
+        if (_imageWriter == null)
+            throw new java.util.MissingResourceException("Missing ImageWriter", "Camera", "");
+
+        _imageWriter.writeToImage(fileName);
+    }
+
 }
