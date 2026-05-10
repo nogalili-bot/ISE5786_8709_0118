@@ -7,13 +7,18 @@ import geometries.api.Geometry;
  * Inherits from Geometry.
  */
 public abstract class RadialGeometry extends Geometry {
-    /** The radius of the shape */
+    /**
+     * The radius of the shape
+     */
     protected final double _radius;
-    /** The squared radius for performance optimization */
+    /**
+     * The squared radius for performance optimization
+     */
     protected final double _radiusSquared;
 
     /**
      * Constructor to initialize the radius and its square.
+     *
      * @param radius the radius of the shape
      */
     public RadialGeometry(double radius) {

@@ -1,12 +1,13 @@
 package geometries.impl;
 
+import geometries.api.Geometry;
 import primitives.Point;
-import primitives.Vector;
 import primitives.Ray;
-
+import primitives.Vector;
 import java.util.List;
 
 import static primitives.Util.alignZero;
+import static geometries.api.Intersectable.Intersection;
 
 /**
  * Represents a sphere in 3D space.
@@ -25,65 +26,56 @@ public class Sphere extends RadialGeometry {
         this._center = center;
     }
 
-
     /**
-     * Calculates the unit normal vector to the sphere's surface at a specified point.
-     * For a sphere, the normal is simply the direction from the center to the point.
-     * * @param point A point on the surface of the sphere.
-     * @return A normalized Vector perpendicular to the sphere's surface at the given point.
+     * Calculates the normal vector to the sphere's surface at a given point.
+     * @param point The point on the sphere surface
+     * @return The normalized normal vector
      */
     @Override
     public Vector getNormal(Point point) {
-        // The normal vector is (Point - Center) normalized
         return point.subtract(_center).normalize();
     }
 
+    /**
+     * Helper method to find intersections of a ray with the sphere.
+     * @param ray The ray to intersect with the sphere
+     * @return A list of Intersections, or null if no intersections found
+     */
     @Override
-    public List<Point> findIntersections(Ray ray) {
+    protected List<Intersection> calcIntersectionsHelper(Ray ray) {
         Point p0 = ray.origin();
         Vector v = ray.direction();
         Point center = _center;
         double r = _radius;
 
-        // Vector from ray origin to sphere center
         Vector u;
         try {
             u = center.subtract(p0);
         } catch (IllegalArgumentException e) {
-            // If p0 is the center, the intersection is at distance r
-            return List.of(ray.getPoint(r));
+            // Case where the ray origin is at the center of the sphere
+            return List.of(new Intersection(this, ray.getPoint(r)));
         }
 
-        // Projection of u onto the ray direction
         double tm = alignZero(v.dotProduct(u));
-
-        // Distance from center to the ray (squared)
         double dSquared = alignZero(u.lengthSquared() - tm * tm);
         double rSquared = r * r;
 
-        // If d > r, the ray misses the sphere
-        if (alignZero(dSquared - rSquared) >= 0) {
-            return null;
-        }
+        // If the distance from the center to the ray is greater than the radius, there are no intersections
+        if (alignZero(dSquared - rSquared) >= 0) return null;
 
-        // Half of the chord length (th)
         double th = alignZero(Math.sqrt(rSquared - dSquared));
-
-        // Calculate the two distances to intersection points
         double t1 = alignZero(tm - th);
         double t2 = alignZero(tm + th);
 
-        // REFACTORING: Use getPoint(t) to safely calculate intersection points.
-        // We only return points where t > 0 (points in the ray's direction).
-        if (t1 > 0 && t2 > 0) {
-            return List.of(ray.getPoint(t1), ray.getPoint(t2));
-        }
-        if (t1 > 0) {
-            return List.of(ray.getPoint(t1));
-        }
-        if (t2 > 0) {
-            return List.of(ray.getPoint(t2));
-        }
+        // Return only points that are in the positive direction of the ray (t > 0)
+        if (t1 > 0 && t2 > 0)
+            return List.of(new Intersection(this, ray.getPoint(t1)),
+                    new Intersection(this, ray.getPoint(t2)));
+        if (t1 > 0)
+            return List.of(new Intersection(this, ray.getPoint(t1)));
+        if (t2 > 0)
+            return List.of(new Intersection(this, ray.getPoint(t2)));
+
         return null;
     }
 }

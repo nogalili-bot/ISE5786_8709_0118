@@ -1,11 +1,12 @@
 package geometries.impl;
 
 import primitives.Point;
-import primitives.Vector;
 import primitives.Ray;
-import static primitives.Util.isZero;
-import static primitives.Util.alignZero;
+import primitives.Vector;
 import java.util.List;
+import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
+import static geometries.api.Intersectable.Intersection;
 
 /**
  * Represents a triangle in 3D space.
@@ -23,19 +24,14 @@ public class Triangle extends Polygon {
         super(p1, p2, p3);
     }
 
-    @Override
-    public Vector getNormal(Point point) {
-        return super.getNormal(point);
-    }
     /**
-     * Finds the intersections of a ray with the triangle using the Möller–Trumbore algorithm.
-     * This implementation avoids pre-calculating the plane and solves the intersection
-     * directly using barycentric coordinates.
-     * * @param ray The ray to intersect with the triangle.
-     * @return A list containing the intersection point, or null if there are no intersections.
+     * Helper method to find intersections of a ray with the triangle.
+     * Uses the Möller–Trumbore intersection algorithm.
+     * @param ray The ray to intersect with the triangle
+     * @return A list of Intersections, or null if no intersections found
      */
     @Override
-    public List<Point> findIntersections(Ray ray) {
+    protected List<Intersection> calcIntersectionsHelper(Ray ray) {
         Point p0 = ray.origin();
         Vector v = ray.direction();
 
@@ -46,17 +42,15 @@ public class Triangle extends Polygon {
         Vector edge1 = p2.subtract(p1);
         Vector edge2 = p3.subtract(p1);
 
-        // PROTECTION: Check if v is parallel to edge2 before crossProduct
         Vector pvec;
         try {
             pvec = v.crossProduct(edge2);
         } catch (IllegalArgumentException e) {
-            // If crossProduct fails, the ray is parallel to the edge
+            // Ray is parallel to the edge
             return null;
         }
 
         double det = edge1.dotProduct(pvec);
-
         // If determinant is near zero, ray lies in plane of triangle or is parallel
         if (isZero(det)) return null;
 
@@ -66,12 +60,10 @@ public class Triangle extends Polygon {
         double u = alignZero(tvec.dotProduct(pvec) * invDet);
         if (u <= 0 || u >= 1) return null;
 
-        // PROTECTION: Check if tvec is parallel to edge1 before crossProduct
         Vector qvec;
         try {
             qvec = tvec.crossProduct(edge1);
         } catch (IllegalArgumentException e) {
-            // If crossProduct fails, tvec and edge1 are collinear
             return null;
         }
 
@@ -80,8 +72,9 @@ public class Triangle extends Polygon {
 
         double t = alignZero(edge2.dotProduct(qvec) * invDet);
 
+        // Return the intersection only if it's in the positive direction of the ray
         if (t > 0) {
-            return List.of(ray.getPoint(t));
+            return List.of(new Intersection(this, ray.getPoint(t)));
         }
 
         return null;

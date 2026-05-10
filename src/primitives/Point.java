@@ -5,11 +5,14 @@ package primitives;
  * The class uses Double3 to store coordinates.
  */
 public class Point {
-    /** Coordinates of the point */
-    protected final Double3 _xyz;
-
-    /** Static constant for the origin point (0,0,0) */
+    /**
+     * Static constant for the origin point (0,0,0)
+     */
     public static final Point ZERO = new Point(0, 0, 0);
+    /**
+     * Coordinates of the point
+     */
+    protected final Double3 _xyz;
 
     /**
      * Constructor using three double values.
@@ -25,17 +28,23 @@ public class Point {
         _xyz = xyz;
     }
 
-    /** Returns a vector from another point to this point */
+    /**
+     * Returns a vector from another point to this point
+     */
     public Vector subtract(Point other) {
         return new Vector(this._xyz.subtract(other._xyz));
     }
 
-    /** Returns a new point after adding a vector to this point */
+    /**
+     * Returns a new point after adding a vector to this point
+     */
     public Point add(Vector vector) {
         return new Point(this._xyz.add(vector._xyz));
     }
 
-    /** Returns the squared distance between two points */
+    /**
+     * Returns the squared distance between two points
+     */
     public double distanceSquared(Point other) {
         double x1 = this._xyz._d1();
         double y1 = this._xyz._d2();
@@ -50,7 +59,9 @@ public class Point {
                 (z1 - z2) * (z1 - z2);
     }
 
-    /** Returns the distance between two points using distanceSquared */
+    /**
+     * Returns the distance between two points using distanceSquared
+     */
     public double distance(Point other) {
         return Math.sqrt(this.distanceSquared(other));
     }
@@ -58,13 +69,12 @@ public class Point {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Point)) return false;
-        Point point = (Point) o;
+        if (!(o instanceof Point point)) return false;
         return _xyz.equals(point._xyz);
     }
 
     @Override
     public String toString() {
-        return  _xyz.toString();
+        return _xyz.toString();
     }
 }
