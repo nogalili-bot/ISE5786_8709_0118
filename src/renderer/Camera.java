@@ -147,15 +147,17 @@ public class Camera implements Cloneable {
 
         /**
          * Builds the Camera instance.
-         * Validation for ImageWriter/RayTracer is removed to support integration tests.
+         */
+        /**
+         * Builds the Camera instance.
          */
         public Camera build() {
             checkResolution();
             checkLocationAndDirection();
             checkViewPlane();
-
-            // REMOVED: MissingResourceException for ImageWriter and RayTracer.
-            // This allows tests that only check Ray construction to pass.
+            if (_camera._imageWriter == null) {
+                _camera._imageWriter = new ImageWriter(_camera.nX, _camera.nY);
+            }
 
             try {
                 return (Camera) _camera.clone();

@@ -4,47 +4,37 @@ import primitives.Color;
 import primitives.Double3;
 
 /**
- * Ambient Light class for environmental lighting.
+ * Ambient light for the scene - provides uniform illumination for all objects.
  */
-public class AmbientLight {
+public class AmbientLight extends Light {
 
-    /** The intensity of the ambient light */
-    private final Color _intensity;
-
-    /** Static constant representing no ambient light (Black) */
-    public static final AmbientLight NONE = new AmbientLight(Color.BLACK, Double3.ZERO);
+    /** Constant for no ambient light (Black) */
+    public static final AmbientLight NONE = new AmbientLight(Color.BLACK);
 
     /**
-     * Constructor to initialize the ambient light intensity (Ia * Ka).
-     * @param iA The intensity color (Ia)
-     * @param kA The attenuation coefficient (Ka)
-     */
-    public AmbientLight(Color iA, Double3 kA) {
-        this._intensity = iA.scale(kA);
-    }
-
-    /**
-     * Helper constructor for a single double coefficient.
-     * @param iA The intensity color (Ia)
-     * @param kA The attenuation coefficient as a double
-     */
-    public AmbientLight(Color iA, double kA) {
-        this._intensity = iA.scale(kA);
-    }
-
-    /**
-     * Basic constructor for direct intensity setting.
-     * @param intensity The final intensity color
+     * Constructor to initialize ambient light with intensity color.
+     * @param intensity the color of the light
      */
     public AmbientLight(Color intensity) {
-        this._intensity = intensity;
+        super(intensity);
     }
 
     /**
-     * Getter for the light intensity.
-     * @return the intensity color
+     * Constructor for ambient light with attenuation factor.
+     * Calculated as: Intensity * ka
+     * @param Ia base intensity color
+     * @param ka attenuation factor
      */
-    public Color getIntensity() {
-        return _intensity;
+    public AmbientLight(Color Ia, Double3 ka) {
+        super(Ia.scale(ka));
+    }
+
+    /**
+     * Constructor for ambient light with attenuation factor (scalar).
+     * @param Ia base intensity color
+     * @param ka attenuation factor (double)
+     */
+    public AmbientLight(Color Ia, double ka) {
+        super(Ia.scale(ka));
     }
 }

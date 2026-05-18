@@ -1,11 +1,11 @@
 package renderer;
 
-import geometries.impl.Sphere;
-import geometries.impl.Triangle;
+import geometries.impl.*;
+//import geometrise.api.*;
 import lighting.AmbientLight;
 import org.junit.jupiter.api.Test;
 import primitives.*;
-import scene.Scene;
+import scene.*;
 
 import static java.awt.Color.*;
 
@@ -24,7 +24,7 @@ class RenderStage6Tests {
     /**
      * Resolution (both X and Y)
      */
-    private static final int RESOLUTION = 1001;
+    private static final int RESOLUTION = 1000;
 
     /**
      * View plane size (both height and width)
@@ -152,7 +152,7 @@ class RenderStage6Tests {
     void testRenderEmissionColor() {
         _scene.setAmbientLight(new AmbientLight(new Color(WHITE), new Double3(0.2)));
 
-        _scene.geometries //
+        _scene.geometries
                 .add(_sphere,//.setEmission(new Color(ORANGE)), // no emission
                         _triangleLeftTop.setEmission(new Color(GREEN)),
                         _triangleLeftBottom.setEmission(new Color(RED)),
@@ -167,31 +167,25 @@ class RenderStage6Tests {
      */
     @Test
     void testRenderAmbientColor() {
-        // Create a new scene with a white ambient light at full intensity (1,1,1)
-        Scene scene = new Scene("Ambient colors")
-                .setAmbientLight(new AmbientLight(new Color(WHITE), new Double3(1)));
+        Scene scene = new Scene("Ambient colors");
+
+        // Set ambient light according to the presentation (Intensity: WHITE, kA: 0.1)
+        scene.setAmbientLight(new AmbientLight(new Color(255, 255, 255), new Double3(0.1)));
 
         scene.geometries.add(
-                // Sphere: Black emission, but receives 50% of the white ambient light (Kd=0.5)
-                // This makes the sphere appear gray in the final render.
-                _sphere.setEmission(Color.BLACK),
-                        //.setMaterial(new Material().setKd(0.5)),
+                // Sphere with attenuation factor 0.4 for all components (Grayish)
+                _sphere.setMaterial(new Material().setKa(0.4)),
 
-                // Top-Left Triangle: Strong Green emission, ignores ambient light (Kd=0)
-                // This prevents the green from becoming "whitish" or pale.
-                _triangleLeftTop.setEmission(new Color(GREEN)),
-                        //.setMaterial(new Material().setKd(0)),
+                // Top left triangle - will only reflect the red component of the white ambient light
+                _triangleLeftTop.setMaterial(new Material().setKa(new Double3(0.8, 0, 0))),
 
-                // Bottom-Left Triangle: Strong Red emission, ignores ambient light (Kd=0)
-                _triangleLeftBottom.setEmission(new Color(RED)),
-                       // .setMaterial(new Material().setKd(0)),
+                // Bottom left triangle - will only reflect the green component of the white ambient light
+                _triangleLeftBottom.setMaterial(new Material().setKa(new Double3(0, 0.8, 0))),
 
-                // Bottom-Right Triangle: Changed to Blue emission, ignores ambient light (Kd=0)
-                // This ensures it appears as a solid blue triangle.
-                _triangleRightBottom.setEmission(new Color(BLUE))
-                      //  .setMaterial(new Material().setKd(0))
+                // Bottom right triangle - will only reflect the blue component of the white ambient light
+                _triangleRightBottom.setMaterial(new Material().setKa(new Double3(0, 0, 0.8)))
         );
 
         createImage(scene, "ambient render test");
     }
-}
+    }

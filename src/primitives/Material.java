@@ -5,15 +5,51 @@ package primitives;
  * It defines how light reflects off the surface using the Phong reflection model.
  */
 public class Material {
-    /** Diffuse reflection coefficient */
+    /**
+     * Diffuse reflection coefficient
+     */
     public Double3 kD = Double3.ZERO;
-    /** Specular reflection coefficient */
+    /**
+     * Specular reflection coefficient
+     */
     public Double3 kS = Double3.ZERO;
-    /** Prominence of the specular highlight */
+    public Double3 kA = Double3.ONE;
+    /**
+     * Prominence of the specular highlight
+     */
     public int nShininess = 0;
 
     /**
+     * PDS class representing the material properties of a geometry.
+     */
+    public Material() {
+    }
+
+    /**
+     * Setter for kA with Double3 parameter.
+     *
+     * @param kA coefficient for ambient light
+     * @return this for chaining
+     */
+    public Material setKa(Double3 kA) {
+        this.kA = kA;
+        return this;
+    }
+
+    /**
+     * Setter for kA with double parameter.
+     *
+     * @param kA coefficient for ambient light
+     * @return this for chaining
+     */
+    public Material setKa(double kA) {
+        this.kA = new Double3(kA);
+        return this;
+    }
+
+    /**
      * Setter for Diffuse coefficient using Double3.
+     *
      * @param kD The diffuse coefficient
      * @return This material instance (Builder pattern)
      */
@@ -24,6 +60,7 @@ public class Material {
 
     /**
      * Setter for Diffuse coefficient using a single double.
+     *
      * @param kD The diffuse coefficient for all channels
      * @return This material instance (Builder pattern)
      */
@@ -34,6 +71,7 @@ public class Material {
 
     /**
      * Setter for Specular coefficient using Double3.
+     *
      * @param kS The specular coefficient
      * @return This material instance (Builder pattern)
      */
@@ -44,6 +82,7 @@ public class Material {
 
     /**
      * Setter for Specular coefficient using a single double.
+     *
      * @param kS The specular coefficient for all channels
      * @return This material instance (Builder pattern)
      */
@@ -54,6 +93,7 @@ public class Material {
 
     /**
      * Setter for Shininess.
+     *
      * @param nShininess The shininess factor
      * @return This material instance (Builder pattern)
      */
