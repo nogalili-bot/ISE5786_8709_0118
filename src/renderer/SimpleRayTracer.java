@@ -11,6 +11,11 @@ import lighting.LightSource;
 class SimpleRayTracer extends RayTracerBase {
 
     /**
+     * Constant for shifting the ray head to prevent self-intersection (shadow acne)
+     */
+    private static final double DELTA = 0.1;
+
+    /**
      * Constructor for SimpleRayTracer.
      * @param scene The scene to trace rays in
      */
@@ -68,14 +73,55 @@ class SimpleRayTracer extends RayTracerBase {
 
             // Check that the light and the camera are on the same side of the surface
             if (nl * nv > 0) {
-                Color iL = lightSource.getIntensity(intersection.point);
-                color = color.add(
-                        calcDiffuse(material.kD, nl, iL),
-                        calcSpecular(material.kS, l, n, nl, v, material.nShininess, iL)
-                );
+                // Check if the point is unshaded by this light source
+                if (unshaded(intersection, lightSource, l, n)) {
+                    Color iL = lightSource.getIntensity(intersection.point);
+                    color = color.add(
+                            calcDiffuse(material.kD, nl, iL),
+                            calcSpecular(material.kS, l, n, nl, v, material.nShininess, iL)
+                    );
+                }
             }
         }
         return color;
+    }
+
+    /**
+     * Checks if a point is unshaded by any geometry between it and the light source.
+     * @param intersection The intersection point data
+     * @param lightSource  The light source
+     * @param l            Vector from the light source to the point
+     * @param n            Normal vector at the intersection point
+     * @return true if the point is unshaded (visible to light), false otherwise
+     */
+    private boolean unshaded(Intersection intersection, LightSource lightSource, Vector l, Vector n) {
+        // Vector from the point towards the light source
+        Vector lightDirection = l.scale(-1);
+
+       // Shift the ray head to avoid self-shadowing (Self-Intersection)
+        double nv = n.dotProduct(lightDirection);
+        Vector deltaVector = n.scale(nv > 0 ? DELTA : -DELTA);
+        Point movedPoint = intersection.point.add(deltaVector);
+        // Create the shadow ray
+        Ray shadowRay = new Ray(movedPoint, lightDirection);
+
+        // Find intersections with the shadow ray
+        var intersections = _scene.geometries.calcIntersections(shadowRay);
+        if (intersections == null) {
+            return true; // No obstacles - completely unshaded
+        }
+
+        // Distance from the point to the light source
+        double distance = lightSource.getDistance(intersection.point);
+
+        // Check if there is any intersection closer to the point than the light source itself
+        for (Intersection geoTest : intersections) {
+            if (geoTest.point.distance(intersection.point) < distance) {
+                return false; // Found an obstacle between the point and the light source
+            }
+        }
+
+        return true;
     }
 
     /**
