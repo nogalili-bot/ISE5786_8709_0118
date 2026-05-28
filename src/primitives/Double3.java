@@ -124,6 +124,16 @@ public record Double3(double _d1, double _d2, double _d3) {
      *               the corresponding component in {@code other}
      */
     public boolean isLowerThan(Double3 other) {
+
         return _d1 < other._d1 && _d2 < other._d2 && _d3 < other._d3;
+    }
+    /**
+     * Checks whether this triad is greater than a given scalar value.
+     * Splitting logic precisely using De Morgan's laws (opposite of isLowerThan).
+     * @param k the value to compare against
+     * @return true if at least one component is greater than or equal to k
+     */
+    public boolean isGreaterThan(double k) {
+        return _d1 >= k || _d2 >= k || _d3 >= k;
     }
 }

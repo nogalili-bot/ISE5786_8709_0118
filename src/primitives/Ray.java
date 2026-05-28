@@ -10,7 +10,7 @@ import static geometries.api.Intersectable.Intersection;
 public final class Ray {
     private final Point _origin;
     private final Vector _direction;
-
+    private static final double DELTA = 0.1;
     /**
      * Constructor for Ray.
      * The direction vector is normalized automatically.
@@ -18,6 +18,28 @@ public final class Ray {
     public Ray(Point origin, Vector direction) {
         _origin = origin;
         _direction = direction.normalize();
+    }
+
+    /**
+     * Constructor for Ray that automatically shifts the origin point to avoid self-intersection.
+     * @param point     The nominal origin point on the surface
+     * @param direction The direction of the ray
+     * @param normal    The normal vector at the surface point
+     */
+    public Ray(Point point, Vector direction, Vector normal) {
+        _direction = direction.normalize();
+
+        // Check alignment between the direction and the normal
+        double nv = normal.dotProduct(_direction);
+
+        if (Util.isZero(nv)) {
+            _origin = point;
+        } else {
+            // Shift the point by DELTA along the normal (positive or negative direction)
+            // constant DELTA here could be a local literal or reference (usually 0.1)
+            Vector deltaVector = normal.scale(nv > 0 ? DELTA : -DELTA);
+            _origin = point.add(deltaVector);
+        }
     }
 
     /** @return the origin point */

@@ -132,7 +132,7 @@ public final class Color {
     * @return                          a new reduced color
     * @throws IllegalArgumentException if {@code k} is less than 1
     */
-   public Color reduce(int k) {
+   public Color reduce(double k) {
       if (k < 1) throw new IllegalArgumentException("Reduction factor must be at least 1");
       return new Color(_rgb.divide(k));
    }

@@ -6,6 +6,55 @@ package primitives;
  */
 public class Material {
     /**
+     * Refraction/Transparency coefficient (0 = opaque, 1 = fully transparent)
+     */
+    public Double3 kT = Double3.ZERO;
+
+    /**
+     * Reflection coefficient (0 = matte, 1 = perfect mirror)
+     */
+    public Double3 kR = Double3.ZERO;
+
+    /**
+     * Setter for transparency coefficient (Double3)
+     * @param kT transparency coefficient
+     * @return this material instance
+     */
+    public Material setKT(Double3 kT) {
+        this.kT = kT;
+        return this;
+    }
+
+    /**
+     * Setter for transparency coefficient (double)
+     * @param kT transparency coefficient
+     * @return this material instance
+     */
+    public Material setKT(double kT) {
+        this.kT = new Double3(kT);
+        return this;
+    }
+
+    /**
+     * Setter for reflection coefficient (Double3)
+     * @param kR reflection coefficient
+     * @return this material instance
+     */
+    public Material setKR(Double3 kR) {
+        this.kR = kR;
+        return this;
+    }
+
+    /**
+     * Setter for reflection coefficient (double)
+     * @param kR reflection coefficient
+     * @return this material instance
+     */
+    public Material setKR(double kR) {
+        this.kR = new Double3(kR);
+        return this;
+    }
+    /**
      * Diffuse reflection coefficient
      */
     public Double3 kD = Double3.ZERO;
