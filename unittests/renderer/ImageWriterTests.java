@@ -21,7 +21,6 @@ public class ImageWriterTests {
         Color backgroundColor = new Color(255, 255, 0); // Yellow
         Color gridColor = new Color(0, 0, 0);           // Black
 
-        // תיקון 1: הבנאי שלך מקבל רק רזולוציה (בלי שם קובץ)
         ImageWriter imageWriter = new ImageWriter(width, height);
 
         for (int i = 0; i < width; i++) {
@@ -34,7 +33,6 @@ public class ImageWriterTests {
             }
         }
 
-        // תיקון 2: אצלך שם הקובץ ניתן במתודה writeToImage
         imageWriter.writeToImage("yellow_grid");
     }
 }
