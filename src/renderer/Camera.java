@@ -3,51 +3,46 @@ package renderer;
 import primitives.*;
 import static primitives.Util.*;
 import java.util.MissingResourceException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.IntStream;
 import scene.*;
 
-/**
- * Camera class representing a viewpoint in 3D space.
- * The class manages the view plane geometry and generates rays through pixels.
- * Implements Cloneable to support the Builder pattern approach.
- */
 public class Camera implements Cloneable {
-    // Camera location and orientation vectors
     private Point p0;
     private Vector vTo;
     private Vector vUp;
     private Vector vRight;
 
-    // View Plane geometry
     private double width = 0;
     private double height = 0;
     private double distance = 0;
 
-    // View Plane resolution (defaults to 1x1)
     private int nX = 1;
     private int nY = 1;
 
-    // Pre-computed helper fields for performance optimization
-    private Point vpc;      // View Plane Center
-    private double pixelW;  // Pixel Width
-    private double pixelH;  // Pixel Height
+    private Point vpc;
+    private double pixelW;
+    private double pixelH;
 
     private ImageWriter _imageWriter;
     private RayTracerBase _rayTracer;
 
-    /**
-     * Private default constructor to prevent direct instantiation.
-     */
+    private double apertureSize = 0;
+    private double focalDistance = 100;
+    private Sampler sampler = null;
+
+    private int threadsCount = 0;
+    private static final int SPARE_THREADS = 2;
+    private double printInterval = 0;
+    private PixelManager pixelManager;
+
     private Camera() {}
 
-    /**
-     * Returns a new Builder instance for Camera construction.
-     * @return A new Camera Builder.
-     */
     public static Builder getBuilder() {
         return new Builder();
     }
 
-    // --- Getters ---
     public Point getP0() { return p0; }
     public Vector getvTo() { return vTo; }
     public Vector getvUp() { return vUp; }
@@ -55,23 +50,17 @@ public class Camera implements Cloneable {
     public double getWidth() { return width; }
     public double getHeight() { return height; }
     public double getDistance() { return distance; }
+    public double getApertureSize() { return apertureSize; }
+    public double getFocalDistance() { return focalDistance; }
 
-    /**
-     * Constructs a ray through a specific pixel (j, i).
-     * @param j The column index (xIndex)
-     * @param i The row index (yIndex)
-     * @return The generated Ray
-     */
     public Ray constructRay(int j, int i) {
         Point pIJ = vpc;
 
-        // Calculate horizontal offset
         double xj = (j - (nX - 1) / 2.0) * pixelW;
         if (!isZero(xj)) {
             pIJ = pIJ.add(vRight.scale(xj));
         }
 
-        // Calculate vertical offset
         double yi = -(i - (nY - 1) / 2.0) * pixelH;
         if (!isZero(yi)) {
             pIJ = pIJ.add(vUp.scale(yi));
@@ -85,14 +74,12 @@ public class Camera implements Cloneable {
         return super.clone();
     }
 
-    /**
-     * Builder class for Camera.
-     */
     public static class Builder {
         private final Camera _camera = new Camera();
         private Vector _vTo = null;
         private Point _target = null;
         private Vector _vUp = Vector.AXIS_Y;
+        private int rootSamples = 1;
 
         public Builder setLocation(Point location) {
             _camera.p0 = location;
@@ -145,18 +132,55 @@ public class Camera implements Cloneable {
             return this;
         }
 
-        /**
-         * Builds the Camera instance.
-         */
-        /**
-         * Builds the Camera instance.
-         */
+        public Builder setApertureSize(double apertureSize) {
+            if (apertureSize < 0)
+                throw new IllegalArgumentException("Aperture size cannot be negative");
+            this._camera.apertureSize = apertureSize;
+            return this;
+        }
+
+        public Builder setFocalDistance(double focalDistance) {
+            if (focalDistance <= 0)
+                throw new IllegalArgumentException("Focal distance must be positive");
+            this._camera.focalDistance = focalDistance;
+            return this;
+        }
+
+        public Builder setRootSamples(int rootSamples) {
+            if (rootSamples < 1)
+                throw new IllegalArgumentException("Root samples must be at least 1");
+            this.rootSamples = rootSamples;
+            return this;
+        }
+
+        public Builder setMultithreading(int threads) {
+            if (threads < -2)
+                throw new IllegalArgumentException("Multithreading parameter must be -2 or higher");
+            if (threads == -2) {
+                int cores = Runtime.getRuntime().availableProcessors() - SPARE_THREADS;
+                _camera.threadsCount = cores <= 0 ? 1 : cores;
+            } else {
+                _camera.threadsCount = threads;
+            }
+            return this;
+        }
+
+        public Builder setDebugPrint(double interval) {
+            if (interval < 0) throw new IllegalArgumentException("interval parameter must be non-negative");
+            _camera.printInterval = interval;
+            return this;
+        }
+
         public Camera build() {
             checkResolution();
             checkLocationAndDirection();
             checkViewPlane();
             if (_camera._imageWriter == null) {
                 _camera._imageWriter = new ImageWriter(_camera.nX, _camera.nY);
+            }
+
+            if (_camera.apertureSize > 0 && this.rootSamples > 1) {
+                _camera.sampler = new Sampler(this.rootSamples);
             }
 
             try {
@@ -208,15 +232,22 @@ public class Camera implements Cloneable {
         }
     }
 
-    /**
-     * Renders the image. Checks for resources here instead of in build().
-     */
     public Camera renderImage() {
         if (_imageWriter == null)
             throw new MissingResourceException("Missing ImageWriter", "Camera", "imageWriter");
         if (_rayTracer == null)
             throw new MissingResourceException("Missing RayTracer", "Camera", "rayTracer");
 
+        pixelManager = new PixelManager(nY, nX, printInterval);
+
+        return switch (threadsCount) {
+            case 0  -> renderImageNoThreads();
+            case -1 -> renderImageStream();
+            default -> renderImageRawThreads();
+        };
+    }
+
+    private Camera renderImageNoThreads() {
         for (int i = 0; i < nY; i++) {
             for (int j = 0; j < nX; j++) {
                 castRay(j, i);
@@ -225,10 +256,94 @@ public class Camera implements Cloneable {
         return this;
     }
 
+    // התיקון הקריטי: סטרים שטוח יחיד ללא קינון שמנצל נכון את הליבות
+    private Camera renderImageStream() {
+        int totalPixels = nX * nY;
+        IntStream.range(0, totalPixels).parallel().forEach(index -> {
+            int i = index / nX;
+            int j = index % nX;
+            castRay(j, i);
+        });
+        return this;
+    }
+
+    private Camera renderImageRawThreads() {
+        var threads = new LinkedList<Thread>();
+        int currentThreadsCount = threadsCount;
+
+        while (currentThreadsCount-- > 0) {
+            threads.add(new Thread(() -> {
+                PixelManager.Pixel pixel;
+                while ((pixel = pixelManager.nextPixel()) != null) {
+                    castRay(pixel.col(), pixel.row());
+                }
+            }));
+        }
+
+        for (var thread : threads) thread.start();
+
+        try {
+            for (var thread : threads) thread.join();
+        } catch (InterruptedException ignored) {}
+
+        return this;
+    }
+
     private void castRay(int j, int i) {
-        Ray ray = constructRay(j, i);
-        Color pixelColor = _rayTracer.traceRay(ray);
-        _imageWriter.writePixel(j, i, pixelColor);
+        if (sampler == null || isZero(apertureSize)) {
+            Ray ray = constructRay(j, i);
+            Color pixelColor = _rayTracer.traceRay(ray);
+            _imageWriter.writePixel(j, i, pixelColor);
+            if (pixelManager != null) {
+                pixelManager.pixelDone();
+            }
+            return;
+        }
+
+        Ray primaryRay = constructRay(j, i);
+        Point pFocal = primaryRay.getPoint(focalDistance);
+
+        List<Offset2D> offsets = sampler.getOffsets();
+        int totalRays = offsets != null ? offsets.size() : 0;
+
+        if (totalRays < 1) {
+            Color pixelColor = _rayTracer.traceRay(primaryRay);
+            _imageWriter.writePixel(j, i, pixelColor);
+            if (pixelManager != null) {
+                pixelManager.pixelDone();
+            }
+            return;
+        }
+
+        Color bkgColor = Color.BLACK;
+
+        for (Offset2D offset : offsets) {
+            Point pSample = p0;
+
+            if (!isZero(offset.x())) {
+                pSample = pSample.add(vRight.scale(offset.x() * apertureSize));
+            }
+            if (!isZero(offset.y())) {
+                pSample = pSample.add(vUp.scale(offset.y() * apertureSize));
+            }
+
+            Vector beamDirection = pFocal.subtract(pSample).normalize();
+            Ray secondaryRay = new Ray(pSample, beamDirection);
+
+            bkgColor = bkgColor.add(_rayTracer.traceRay(secondaryRay));
+        }
+
+        _imageWriter.writePixel(j, i, bkgColor.reduce(totalRays));
+
+        if (pixelManager != null) {
+            pixelManager.pixelDone();
+        }
+    }
+
+    public void writeToImage(String fileName) {
+        if (_imageWriter == null)
+            throw new MissingResourceException("Missing ImageWriter", "Camera", "imageWriter");
+        _imageWriter.writeToImage(fileName);
     }
 
     public Camera printGrid(int interval, Color color) {
@@ -243,11 +358,5 @@ public class Camera implements Cloneable {
             }
         }
         return this;
-    }
-
-    public void writeToImage(String fileName) {
-        if (_imageWriter == null)
-            throw new MissingResourceException("Missing ImageWriter", "Camera", "imageWriter");
-        _imageWriter.writeToImage(fileName);
     }
 }

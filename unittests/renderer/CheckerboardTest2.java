@@ -9,37 +9,30 @@ import lighting.AmbientLight;
 import lighting.SpotLight;
 import primitives.*;
 import scene.Scene;
+import java.util.List;
 
-/**
- * Production Code: Matte table shortened by 2 rows (gridZ = 12).
- * Clean version: No trees, no pyramids, just the main table and objects.
- */
-public class CheckerboardTest {
+public class CheckerboardTest2 {
 
-    private final Scene _scene = new Scene("3D Matte Shortened Table - Clean Setup");
-
-    private final Camera.Builder _cameraBuilder = Camera.getBuilder()
-            .setRayTracer(_scene, RayTracerType.SIMPLE);
+    private final Scene _scene = new Scene("3D Matte Shortened Table - DoF Setup");
 
     @Test
     @SuppressWarnings("java:S109")
-    void test3DCheckerboardWithFruitsAndTableLegs() {
-        // --- Materials Setup (Matte - No reflections to prevent shadows from clipping) ---
+    void test3DCheckerboardWithDepthOfField() {
+        System.out.println(">>> SUCCESS: WE ARE INSIDE THE CORRECT TEST! <<<");
+
+        // --- Materials Setup ---
         Material tableMat = new Material().setKd(0.6).setKs(0.1).setShininess(10);
 
-        // חומרי האלמנטים על השולחן
         Material appleMat = new Material().setKd(0.7).setKs(0.2).setShininess(30);
         Material fruitMat = new Material().setKd(0.7).setKs(0.2).setShininess(15);
         Material leafMat = new Material().setKd(0.8).setKs(0.0).setShininess(1);
         Material vaseMat = new Material().setKd(0.7).setKs(0.1).setShininess(20);
         Material flowerMat = new Material().setKd(0.7).setKs(0.2).setShininess(30);
 
-        // חומרי הכוס, המשקה והקש
         Material glassMat = new Material().setKd(0.05).setKs(0.95).setShininess(250).setKT(0.85).setKR(0.25);
         Material drinkMat = new Material().setKd(0.7).setKs(0.3).setShininess(80).setKT(0.15);
         Material strawMat = new Material().setKd(0.1).setKs(0.9).setShininess(200).setKT(0.7).setKR(0.1);
 
-        // חומר לבן עבור רגלי השולחן
         Material legMat = new Material().setKd(0.6).setKs(0.2).setShininess(50);
 
         // הגדרות צבעים
@@ -52,7 +45,6 @@ public class CheckerboardTest {
         Color pineappleYellow = new Color(220, 170, 15);
         Color legWhite = new Color(220, 220, 225);
 
-        // צבעי העציץ והאדמה
         Color vaseTurquoise = new Color(30, 180, 150);
         Color earthBrown = new Color(75, 45, 25);
         Color stemGreen = new Color(34, 139, 34);
@@ -80,7 +72,7 @@ public class CheckerboardTest {
         double startZ = -100 - ((gridZ * squareSize) / 2.0);
 
         double bottomY = -40;
-        double topY = bottomY + thickness; // -32
+        double topY = bottomY + thickness;
 
         for (int i = 0; i < gridX; i++) {
             for (int j = 0; j < gridZ; j++) {
@@ -105,9 +97,7 @@ public class CheckerboardTest {
             }
         }
 
-        // ==========================================
         // 2.4 TABLE LEGS
-        // ==========================================
         double legRadius = 3.5;
         double legHeight = bottomY - floorY;
         Vector upVector = new Vector(0, 1, 0);
@@ -129,7 +119,7 @@ public class CheckerboardTest {
                         .setEmission(legWhite).setMaterial(legMat)
         );
 
-        // 2.5 THE APRICOT (משמש כתום)
+        // 2.5 THE APRICOT
         double appleRadius = 15;
         Point appleCenter = new Point(-30, topY + appleRadius, -100);
 
@@ -145,15 +135,10 @@ public class CheckerboardTest {
                 ).setEmission(leafGreen).setMaterial(leafMat)
         );
 
-        // ==========================================
-        // 2.5.1 BROWN BALL IN THE TOP-LEFT CORNER (Moved Up and Left)
-        // ==========================================
-        // הגדרת חומר חום מט
+        // 2.5.1 BROWN BALL
         Material brownBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15);
-        Color ballBrownColor = new Color(110, 65, 35); // צבע חום שוקולד
-
+        Color ballBrownColor = new Color(110, 65, 35);
         double brownBallRadius = 12;
-        // מיקום שיופיע בצד שמאל ובחלק העליון של התמונה הסופית
         Point brownBallCenter = new Point(-60, topY + 80, -140);
 
         _scene.geometries.add(
@@ -162,15 +147,10 @@ public class CheckerboardTest {
                         .setMaterial(brownBallMat)
         );
 
-        // ==========================================
-        // 2.5.2 BLUE BALL IN THE TOP-LEFT CORNER (Moved Up and Left)
-        // ==========================================
-        // הגדרת חומר כחול מט
+        // 2.5.2 BLUE BALL
         Material blueBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15);
-        Color ballBlueColor = new Color(65, 105, 225); // צבע כחול רויאל
-
+        Color ballBlueColor = new Color(65, 105, 225);
         double blueBallRadius = 20;
-        // מיקום שיופיע בצד שמאל ובחלק העליון של התמונה הסופית
         Point blueBallCenter = new Point(-90, topY + 50, -140);
 
         _scene.geometries.add(
@@ -179,15 +159,10 @@ public class CheckerboardTest {
                         .setMaterial(blueBallMat)
         );
 
-        // ==========================================
-        // 2.5.3 STONE BALL IN THE TOP-LEFT CORNER (Moved Up and Left)
-        // ==========================================
-        // הגדרת חומר כחול מט
+        // 2.5.3 STONE BALL
         Material stoneBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15);
-        Color ballStoneColor = new Color(225, 215, 195); // צבע כחול רויאל
-
+        Color ballStoneColor = new Color(225, 215, 195);
         double stoneBallRadius = 32;
-        // מיקום שיופיע בצד שמאל ובחלק העליון של התמונה הסופית
         Point stoneBallCenter = new Point(-130, topY + 30, -140);
 
         _scene.geometries.add(
@@ -249,7 +224,7 @@ public class CheckerboardTest {
             );
         }
 
-        // 2.7 GLASS OF PURPLE DRINK WITH STRAW
+        // 2.7 GLASS
         double glassX = 0;
         double glassZ = -55;
         double glassBaseY = topY;
@@ -270,9 +245,7 @@ public class CheckerboardTest {
                         .setMaterial(strawMat)
         );
 
-        // ======================================================================
-        // 2.8 TURQUOISE POT WITH EARTH & 10 LIGHT-BLUE FLOWERS
-        // ======================================================================
+        // 2.8 TURQUOISE POT
         double vaseX = 0;
         double vaseZ = -160;
         double vaseBaseY = topY;
@@ -287,7 +260,6 @@ public class CheckerboardTest {
                         .setMaterial(vaseMat)
         );
 
-        // פקק אדמה חום בפתח העציץ
         _scene.geometries.add(
                 new Cylinder(vaseInnerRadius, new Ray(new Point(vaseX, vaseBaseY + vaseHeight - 1.5, vaseZ), upVector), 1.5)
                         .setEmission(earthBrown)
@@ -323,20 +295,6 @@ public class CheckerboardTest {
             );
         }
 
-        // 2.9 CHAOTIC ARTISTIC BACKGROUND BEHIND THE TABLE
-
-        java.util.Random rnd = new java.util.Random(12345);
-
-        // צבעים שונים
-        Color[] chaosColors = {
-                new Color(250, 80, 80),
-                new Color(80, 180, 250),
-                new Color(250, 220, 90),
-                new Color(120, 250, 140),
-                new Color(200, 120, 250),
-                new Color(255, 140, 200)
-        };
-
         // 3. STUDIO LIGHTING SETUP
         _scene.setAmbientLight(new AmbientLight(new Color(0, 0, 0)));
 
@@ -345,15 +303,25 @@ public class CheckerboardTest {
                         .setKl(3E-5).setKq(1E-7)
         );
 
-        // 4. CAMERA SETUP
-        _cameraBuilder
+        // 4. CAMERA SETUP WITH MULTI-THREADING & PROGRESS PRINT
+        Camera.getBuilder()
+                .setRayTracer(_scene, RayTracerType.SIMPLE)
                 .setLocation(new Point(143.43, 176.32, 188.19))
                 .setDirection(new Point(0, -36, -100), Vector.AXIS_Y)
                 .setVpDistance(300)
                 .setVpSize(180, 180)
-                .setResolution(800, 800)
+                .setResolution(1000, 1000)
+
+                .setApertureSize(6.0)
+                .setFocalDistance(165)
+                .setRootSamples(4)
+
+                // השורות החדשות שמפעילות את התהליכונים ואת ההדפסה לקונסול
+                .setMultithreading(-1)     // שימוש ב-Parallel Streams לביצועים מקסימליים
+                .setDebugPrint(1.0)        // הדפסת אחוזי התקדמות כל 1%
+
                 .build()
                 .renderImage()
-                .writeToImage("3DCheckerboardFruitStudioRotated");
+                .writeToImage("3DCheckerboard_With_DoF_NEW");
     }
 }
