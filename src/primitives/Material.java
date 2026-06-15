@@ -5,6 +5,7 @@ package primitives;
  * It defines how light reflects off the surface using the Phong reflection model.
  */
 public class Material {
+    public boolean isBlurry = false;
     /**
      * Refraction/Transparency coefficient (0 = opaque, 1 = fully transparent)
      */
@@ -149,5 +150,10 @@ public class Material {
     public Material setShininess(int nShininess) {
         this.nShininess = nShininess;
         return this;
+    }
+
+    public Material setBlurry(boolean blurry) {
+        this.isBlurry = blurry;
+        return this; // תואם ל-Builder Pattern של הפרויקט שלך
     }
 }
