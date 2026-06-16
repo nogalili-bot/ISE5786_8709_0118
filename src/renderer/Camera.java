@@ -33,16 +33,9 @@ public class Camera implements Cloneable {
     private double focalDistance = 100;
     private Sampler sampler = null;
 
-    /** Amount of threads to use for rendering image by the camera */
     private int threadsCount = 0;
-
-    /** Amount of threads to spare for Java VM threads */
     private static final int SPARE_THREADS = 2;
-
-    /** Debug print interval in seconds (0 means no progress output) */
     private double printInterval = 0;
-
-    /** Pixel manager for multi-threading and progress tracking */
     private PixelManager pixelManager;
 
     private Camera() {}
@@ -290,7 +283,6 @@ public class Camera implements Cloneable {
     private void castRay(int j, int i) {
         Ray primaryRay = constructRay(j, i);
 
-// תנאי הגנה בסיסי: אם אין צמצם או סאמפלר, מרססים רגיל במהירות
         if (sampler == null || isZero(apertureSize)) {
             Color pixelColor = _rayTracer.traceRay(primaryRay);
             _imageWriter.writePixel(j, i, pixelColor);
@@ -298,25 +290,25 @@ public class Camera implements Cloneable {
             return;
         }
 
-// מוצאים את החיתוך הקרוב ביותר של הקרן הראשונית
         Intersection closestIntersection = findClosestIntersection(primaryRay);
 
-        double depth;
         if (closestIntersection == null) {
-// רקע ריק - רחוק מאוד ומטושטש לחלוטין
-            depth = 1000.0;
-        } else {
-// חישוב המרחק הגיאומטרי של נקונד החיתוך מהמצלמה
-            Vector baseToIntersection = closestIntersection.point.subtract(p0);
-            depth = baseToIntersection.dotProduct(vTo);
+            Color pixelColor = _rayTracer.traceRay(primaryRay);
+            _imageWriter.writePixel(j, i, pixelColor);
+            if (pixelManager != null) pixelManager.pixelDone();
+            return;
         }
 
-// --- הגדרת תחומי העומק של הסצנה (אזור הואזה והאננס) ---
-        double minSharpDepth = 400.0;
-        double maxSharpDepth = 530.0;
-        double transitionRange = 220.0; // טווח המעבר הרך
+        Vector baseToIntersection = closestIntersection.point.subtract(p0);
+        double depth = baseToIntersection.dotProduct(vTo);
 
-        double weight = 0.0; // 0 = חד לחלוטין, 1 = מקסימום טשטוש
+        double center = focalDistance;
+        double halfRange = 20.0;
+        double minSharpDepth = center - halfRange;
+        double maxSharpDepth = center + halfRange;
+        double transitionRange = 180.0;
+
+        double weight = 0.0;
 
         if (depth < minSharpDepth) {
             weight = (minSharpDepth - depth) / transitionRange;
@@ -324,11 +316,9 @@ public class Camera implements Cloneable {
             weight = (depth - maxSharpDepth) / transitionRange;
         }
 
-// חסימת ערך ה-weight בין 0 ל-1
         if (weight > 1.0) weight = 1.0;
         if (weight < 0.0) weight = 0.0;
 
-// אופטימיזציה מהירה: אם אנחנו בטווח החד הטהור -> קרן אחת בלבד ועוצרים
         if (isZero(weight)) {
             Color pixelColor = _rayTracer.traceRay(primaryRay);
             _imageWriter.writePixel(j, i, pixelColor);
@@ -336,15 +326,10 @@ public class Camera implements Cloneable {
             return;
         }
 
-// --- רינדור עומק שדה רציף (Continuous DoF) ---
         List<Offset2D> offsets = sampler.getOffsets();
-
-// נשתמש בכמות קבועה של קרניים עבור כל אזורי הטשטוש כדי למנוע את קווי השבירה.
-// חצי מכמות הקרניים המקסימלית תיתן תוצאה חלקה מאוד ובחצי מהזמן.
         int raysToRun = (offsets != null) ? offsets.size() / 2 : 0;
         if (raysToRun < 1) raysToRun = 1;
 
-// השינוי הדרמטי: משנים את גודל הצמצם האפקטיבי לפי המרחק בצורה אנלוגית ורציפה!
         double dynamicAperture = apertureSize * weight;
 
         Point pFocal = primaryRay.getPoint(focalDistance);
@@ -354,7 +339,6 @@ public class Camera implements Cloneable {
             Offset2D offset = offsets.get(r);
             Point pSample = p0;
 
-// שימוש ב-dynamicAperture הרציף במקום ב-apertureSize הקבוע
             if (!isZero(offset.x())) {
                 pSample = pSample.add(vRight.scale(offset.x() * dynamicAperture));
             }
@@ -368,7 +352,9 @@ public class Camera implements Cloneable {
             bkgColor = bkgColor.add(_rayTracer.traceRay(secondaryRay));
         }
 
-        _imageWriter.writePixel(j, i, bkgColor.reduce(raysToRun));
+        Color blurredColor = bkgColor.reduce(raysToRun);
+
+        _imageWriter.writePixel(j, i, blurredColor);
 
         if (pixelManager != null) {
             pixelManager.pixelDone();
