@@ -54,21 +54,23 @@ class TriangleTests {
      */
     @Test
     void testFindIntersections() {
+        // הזזת המשולש למישור Z = 2 כדי למנוע חישוב וקטור אפס (0,0,0) בבנאי
         Triangle triangle = new Triangle(
-                new Point(1, 0, 0),
-                new Point(0, 1, 0),
-                new Point(0, 0, 0)
+                new Point(1, 0, 2),
+                new Point(0, 1, 2),
+                new Point(0, 0, 2)
         );
         final String ERROR_TRIANGLE_INTERSECTION = "Triangle intersection algorithm is incorrect";
 
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: Inside triangle (1 point)
+        // הקרן מתחילה ב-Z=-1 ומצביעה קדימה (0,0,1) לכיוון Z=2
         Ray ray1 = new Ray(new Point(0.1, 0.1, -1), new Vector(0, 0, 1));
         List<Point> result1 = triangle.findIntersections(ray1);
         assertNotNull(result1, ERROR_TRIANGLE_INTERSECTION);
         assertEquals(1, result1.size(), ERROR_TRIANGLE_INTERSECTION);
-        assertEquals(new Point(0.1, 0.1, 0), result1.getFirst(), ERROR_TRIANGLE_INTERSECTION);
+        assertEquals(new Point(0.1, 0.1, 2), result1.getFirst(), ERROR_TRIANGLE_INTERSECTION);
 
         // TC02: Outside triangle - against edge (0 points)
         Ray ray2 = new Ray(new Point(1, 1, -1), new Vector(0, 0, 1));
@@ -97,8 +99,8 @@ class TriangleTests {
         Ray ray14 = new Ray(new Point(0, 0, -1), new Vector(1, 0, 0));
         assertNull(triangle.findIntersections(ray14), "Parallel ray should return null");
 
-        // TC15: Ray starts at the triangle's plane
-        Ray ray15 = new Ray(new Point(0.1, 0.1, 0), new Vector(0, 0, 1));
+        // TC15: Ray starts at the triangle's plane (Z = 2)
+        Ray ray15 = new Ray(new Point(0.1, 0.1, 2), new Vector(0, 0, 1));
         assertNull(triangle.findIntersections(ray15), "Ray starting at the plane should return null");
     }
 }
