@@ -27,8 +27,8 @@ public class Sphere extends RadialGeometry {
         this._center = center;
         Vector delta = new Vector(radius, radius, radius);
         this.boundingBox = new BoundingBox(
-                center.add(delta.scale(-1)), // נקודת המינימום (נעה אחורה ושמאלה)
-                center.add(delta)            // נקודת המקסימום (נעה קדימה וימינה)
+                center.add(delta.scale(-1)), // Minimum point (shifted back and left)
+                center.add(delta)            // Maximum point (shifted forward and right)
         );
     }
 

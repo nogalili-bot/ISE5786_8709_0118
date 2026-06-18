@@ -27,22 +27,22 @@ public class CheckerboardTest {
         // --- Materials Setup (Matte - No reflections to prevent shadows from clipping) ---
         Material tableMat = new Material().setKd(0.6).setKs(0.1).setShininess(10);
 
-        // חומרי האלמנטים על השולחן
+        // Material of the elements on the table
         Material appleMat = new Material().setKd(0.7).setKs(0.2).setShininess(30);
         Material fruitMat = new Material().setKd(0.7).setKs(0.2).setShininess(15);
         Material leafMat = new Material().setKd(0.8).setKs(0.0).setShininess(1);
         Material vaseMat = new Material().setKd(0.7).setKs(0.1).setShininess(20);
         Material flowerMat = new Material().setKd(0.7).setKs(0.2).setShininess(30);
 
-        // חומרי הכוס, המשקה והקש
+        // Materials for the glass, drink, and straw
         Material glassMat = new Material().setKd(0.05).setKs(0.95).setShininess(250).setKT(0.85).setKR(0.25);
         Material drinkMat = new Material().setKd(0.7).setKs(0.3).setShininess(80).setKT(0.15);
         Material strawMat = new Material().setKd(0.1).setKs(0.9).setShininess(200).setKT(0.7).setKR(0.1);
 
-        // חומר לבן עבור רגלי השולחן
+        // White material for the table legs
         Material legMat = new Material().setKd(0.6).setKs(0.2).setShininess(50);
 
-        // הגדרות צבעים
+        // Color definitions
         Color whiteColor = new Color(240, 240, 250);
         Color pinkishRedColor = new Color(240, 100, 120);
         Color floorColor = new Color(20, 22, 25);
@@ -52,7 +52,7 @@ public class CheckerboardTest {
         Color pineappleYellow = new Color(220, 170, 15);
         Color legWhite = new Color(220, 220, 225);
 
-        // צבעי העציץ והאדמה
+        // Vase and earth colors
         Color vaseTurquoise = new Color(30, 180, 150);
         Color earthBrown = new Color(75, 45, 25);
         Color stemGreen = new Color(34, 139, 34);
@@ -129,7 +129,7 @@ public class CheckerboardTest {
                         .setEmission(legWhite).setMaterial(legMat)
         );
 
-        // 2.5 THE APRICOT (משמש כתום)
+        // 2.5 THE APRICOT
         double appleRadius = 15;
         Point appleCenter = new Point(-30, topY + appleRadius, -100);
 
@@ -146,14 +146,12 @@ public class CheckerboardTest {
         );
 
         // ==========================================
-        // 2.5.1 BROWN BALL IN THE TOP-LEFT CORNER (Moved Up and Left)
+        // 2.5.1 BROWN BALL IN THE TOP-LEFT CORNER
         // ==========================================
-        // הגדרת חומר חום מט
         Material brownBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15);
-        Color ballBrownColor = new Color(110, 65, 35); // צבע חום שוקולד
+        Color ballBrownColor = new Color(110, 65, 35); // Chocolate brown
 
         double brownBallRadius = 12;
-        // מיקום שיופיע בצד שמאל ובחלק העליון של התמונה הסופית
         Point brownBallCenter = new Point(-60, topY + 80, -140);
 
         _scene.geometries.add(
@@ -163,14 +161,12 @@ public class CheckerboardTest {
         );
 
         // ==========================================
-        // 2.5.2 BLUE BALL IN THE TOP-LEFT CORNER (Moved Up and Left)
+        // 2.5.2 BLUE BALL IN THE TOP-LEFT CORNER
         // ==========================================
-        // הגדרת חומר כחול מט
         Material blueBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15);
-        Color ballBlueColor = new Color(65, 105, 225); // צבע כחול רויאל
+        Color ballBlueColor = new Color(65, 105, 225); // Royal blue
 
         double blueBallRadius = 20;
-        // מיקום שיופיע בצד שמאל ובחלק העליון של התמונה הסופית
         Point blueBallCenter = new Point(-90, topY + 50, -140);
 
         _scene.geometries.add(
@@ -180,14 +176,12 @@ public class CheckerboardTest {
         );
 
         // ==========================================
-        // 2.5.3 STONE BALL IN THE TOP-LEFT CORNER (Moved Up and Left)
+        // 2.5.3 STONE BALL IN THE TOP-LEFT CORNER
         // ==========================================
-        // הגדרת חומר כחול מט
         Material stoneBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15);
-        Color ballStoneColor = new Color(225, 215, 195); // צבע כחול רויאל
+        Color ballStoneColor = new Color(225, 215, 195);
 
         double stoneBallRadius = 32;
-        // מיקום שיופיע בצד שמאל ובחלק העליון של התמונה הסופית
         Point stoneBallCenter = new Point(-130, topY + 30, -140);
 
         _scene.geometries.add(
@@ -231,7 +225,7 @@ public class CheckerboardTest {
             }
         }
 
-        // כתר עלי האננס
+        // Pineapple crown leaves
         double crownY = pineBaseY + pineHeight;
         for (int r = 0; r < radialSegments; r++) {
             double angle = ((double) r / radialSegments) * 2 * Math.PI;
@@ -287,7 +281,7 @@ public class CheckerboardTest {
                         .setMaterial(vaseMat)
         );
 
-        // פקק אדמה חום בפתח העציץ
+        // Earth plug at the vase opening
         _scene.geometries.add(
                 new Cylinder(vaseInnerRadius, new Ray(new Point(vaseX, vaseBaseY + vaseHeight - 1.5, vaseZ), upVector), 1.5)
                         .setEmission(earthBrown)
@@ -323,19 +317,8 @@ public class CheckerboardTest {
             );
         }
 
-        // 2.9 CHAOTIC ARTISTIC BACKGROUND BEHIND THE TABLE
-
+        // 2.9 CHAOTIC ARTISTIC BACKGROUND
         java.util.Random rnd = new java.util.Random(12345);
-
-        // צבעים שונים
-        Color[] chaosColors = {
-                new Color(250, 80, 80),
-                new Color(80, 180, 250),
-                new Color(250, 220, 90),
-                new Color(120, 250, 140),
-                new Color(200, 120, 250),
-                new Color(255, 140, 200)
-        };
 
         // 3. STUDIO LIGHTING SETUP
         _scene.setAmbientLight(new AmbientLight(new Color(0, 0, 0)));

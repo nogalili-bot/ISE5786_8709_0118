@@ -24,22 +24,22 @@ public class Triangle extends Polygon {
      */
     public Triangle(Point p1, Point p2, Point p3) {
         super(p1, p2, p3);
-        // 1. נגדיר וקטורי יחידה עבור שלושת הצירים הראשיים
+        // 1. Define unit vectors for the three main axes
         Vector axisX = new Vector(1, 0, 0);
         Vector axisY = new Vector(0, 1, 0);
         Vector axisZ = new Vector(0, 0, 1);
 
-// 2. נהפוך את הנקודות לוקטורים מראשית הצירים
+        // 2. Convert the points to vectors from the origin
         Vector v1 = p1.subtract(Point.ZERO);
         Vector v2 = p2.subtract(Point.ZERO);
         Vector v3 = p3.subtract(Point.ZERO);
 
-// 3. חילוץ ערכי ה-X, Y, Z בעזרת dotProduct (מכפלה סקלארית עם וקטור יחידה מחזירה את ההיטל על אותו ציר)
+        // 3. Extract X, Y, Z values using dotProduct (scalar product with unit vector returns projection on that axis)
         double x1 = v1.dotProduct(axisX), y1 = v1.dotProduct(axisY), z1 = v1.dotProduct(axisZ);
         double x2 = v2.dotProduct(axisX), y2 = v2.dotProduct(axisY), z2 = v2.dotProduct(axisZ);
         double x3 = v3.dotProduct(axisX), y3 = v3.dotProduct(axisY), z3 = v3.dotProduct(axisZ);
 
-// 4. מציאת המינימום והמקסימום עבור קצוות הקופסה
+        // 4. Find the minimum and maximum for the box edges
         double minX = Math.min(x1, Math.min(x2, x3));
         double minY = Math.min(y1, Math.min(y2, y3));
         double minZ = Math.min(z1, Math.min(z2, z3));
@@ -48,7 +48,7 @@ public class Triangle extends Polygon {
         double maxY = Math.max(y1, Math.max(y2, y3));
         double maxZ = Math.max(z1, Math.max(z2, z3));
 
-// 5. השמת הקופסה התוחמת
+        // 5. Set the bounding box
         this.boundingBox = new BoundingBox(
                 new Point(minX, minY, minZ),
                 new Point(maxX, maxY, maxZ)

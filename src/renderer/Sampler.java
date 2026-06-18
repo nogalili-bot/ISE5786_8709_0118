@@ -5,7 +5,7 @@ import java.util.List;
 import primitives.Offset2D;
 
 public class Sampler {
-    private final int rootSamples; // למשל 9 עבור רשת של 9x9
+    private final int rootSamples; // e.g., 9 for a 9x9 grid
     private final List<Offset2D> offsets = new ArrayList<>();
 
     public Sampler(int rootSamples) {
@@ -27,23 +27,23 @@ public class Sampler {
             return;
         }
 
-        // חלוקה נכונה לפי כמות הדגימות
+        // Correct division according to the number of samples
         double step = 1.0 / rootSamples;
 
         for (int i = 0; i < rootSamples; i++) {
             for (int j = 0; j < rootSamples; j++) {
-                // לקיחת מרכז המשבצת בטווח [0, 1] והזזה לטווח [-0.5, 0.5]
+                // Taking the center of the cell in range [0, 1] and shifting to [-0.5, 0.5]
                 double x = ((i + 0.5) * step) - 0.5;
                 double y = ((j + 0.5) * step) - 0.5;
 
-                // סינון עבור אזור מטרה עגול (Aperture) - רדיוס 0.5 בריבוע הוא 0.25
+                // Filtering for a circular target area (Aperture) - radius 0.5 squared is 0.25
                 if ((x * x + y * y) <= 0.25) {
                     offsets.add(new Offset2D(x, y));
                 }
             }
         }
 
-        // הגנה: אם מסיבה כלשהי הרשת קטנה מדי ואף נקודה לא נכנסה לעיגול, נוסיף את המרכז
+        // Safeguard: if for some reason the grid is too small and no point entered the circle, add the center
         if (offsets.isEmpty()) {
             offsets.add(new Offset2D(0, 0));
         }

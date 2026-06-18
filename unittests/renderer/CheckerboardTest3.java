@@ -32,13 +32,13 @@ public class CheckerboardTest3 {
         Material strawMat = new Material().setKd(0.1).setKs(0.9).setShininess(200).setKT(0.7).setKR(0.1);
         Material legMat = new Material().setKd(0.6).setKs(0.2).setShininess(50);
 
-        // שמירה על מקדם הדיפוזיה הנמוך (0.25) שאהבת, המונע מהקערה להישרף ללבן שטוח
+        // Keeping the low diffuse coefficient to prevent the bowl from appearing flat white
         Material porcelainMat = new Material().setKd(0.25).setKs(0.0).setShininess(1);
 
-        // חומר ייעודי לשלושת הכדורים ברקע (טשטוש DoF)
+        // Material dedicated to the three background balls (for DoF blur)
         Material blurryBallMat = new Material().setKd(0.6).setKs(0.1).setShininess(15).setBlurry(true);
 
-        // הגדרות צבעים
+        // Color definitions
         Color whiteColor = new Color(240, 240, 250);
         Color pinkishRedColor = new Color(50, 0, 75);
         Color floorColor = new Color(20, 22, 25);
@@ -54,7 +54,7 @@ public class CheckerboardTest3 {
         Color glassColor = new Color(30, 35, 40);
         Color drinkDeepPurple = new Color(80, 0, 0);
 
-        // מעבר מגוון אפרורי לגוון חום-אדמה חמים, רך ומאוזן
+        // Transition from greyish to a warm, soft, balanced earthy brown tone
         Color porcelainSoftBrown = new Color(145, 115, 85);
 
         // 1. ENVIRONMENT: Studio Floor (Plane)
@@ -84,7 +84,7 @@ public class CheckerboardTest3 {
                 boolean isWhite = (i + j) % 2 == 0;
                 Color cubeColor = isWhite ? whiteColor : pinkishRedColor;
 
-                // 1. משטח עליון של השולחן
+                // 1. Table top surface
                 _scene.geometries.add(
                         new Triangle(new Point(x1, topY, z1), new Point(x2, topY, z1), new Point(x1, topY, z2))
                                 .setEmission(cubeColor).setMaterial(tableMat),
@@ -92,7 +92,7 @@ public class CheckerboardTest3 {
                                 .setEmission(cubeColor).setMaterial(tableMat)
                 );
 
-                // 2. דופן קדמית (הכי קרובה למצלמה)
+                // 2. Front side (closest to camera)
                 if (j == gridZ - 1) {
                     _scene.geometries.add(
                             new Triangle(new Point(x1, bottomY, z2), new Point(x2, bottomY, z2), new Point(x1, topY, z2))
@@ -102,7 +102,7 @@ public class CheckerboardTest3 {
                     );
                 }
 
-                // 3. דופן ימנית (טור ה-X האחרון)
+                // 3. Right side
                 if (i == gridX - 1) {
                     _scene.geometries.add(
                             new Triangle(new Point(x2, bottomY, z1), new Point(x2, bottomY, z2), new Point(x2, topY, z1))
@@ -112,7 +112,7 @@ public class CheckerboardTest3 {
                     );
                 }
 
-                // 4. דופן שמאלית (טור ה-X הראשון)
+                // 4. Left side
                 if (i == 0) {
                     _scene.geometries.add(
                             new Triangle(new Point(x1, bottomY, z1), new Point(x1, bottomY, z2), new Point(x1, topY, z1))
@@ -122,7 +122,7 @@ public class CheckerboardTest3 {
                     );
                 }
 
-                // 5. דופן אחורית (שורת ה-Z הראשונה)
+                // 5. Back side
                 if (j == 0) {
                     _scene.geometries.add(
                             new Triangle(new Point(x1, bottomY, z1), new Point(x2, bottomY, z1), new Point(x1, topY, z1))
@@ -222,7 +222,7 @@ public class CheckerboardTest3 {
             }
         }
 
-        // כתר עלי האננס
+        // Pineapple crown leaves
         double crownY = pineBaseY + pineHeight;
         for (int r = 0; r < radialSegments; r++) {
             double angle = ((double) r / radialSegments) * 2 * Math.PI;
@@ -250,19 +250,19 @@ public class CheckerboardTest3 {
         double baseThickness = 0.6;
 
         _scene.geometries.add(
-                // 1. בסיס הרגלית
+                // 1. Base of the stem
                 new Cylinder(baseRadius, new Ray(new Point(glassX, glassBaseY, glassZ), upVector), baseThickness)
                         .setEmission(glassColor).setMaterial(glassMat),
 
-                // 2. הרגל הארוכה
+                // 2. Long stem
                 new Cylinder(stemRadius, new Ray(new Point(glassX, glassBaseY + baseThickness, glassZ), upVector), stemHeight - baseThickness)
                         .setEmission(glassColor).setMaterial(glassMat),
 
-                // 3. גוף הכוס
+                // 3. Glass body
                 new Cylinder(glassRadius, new Ray(new Point(glassX, glassBaseY + stemHeight, glassZ), upVector), glassHeight)
                         .setEmission(glassColor).setMaterial(glassMat),
 
-                // 4. המשקה בכוס
+                // 4. Drink inside the glass
                 new Cylinder(glassRadius - 1.2, new Ray(new Point(glassX, glassBaseY + stemHeight + 0.5, glassZ), upVector), glassHeight * 0.75)
                         .setEmission(drinkDeepPurple).setMaterial(drinkMat)
         );
@@ -278,21 +278,21 @@ public class CheckerboardTest3 {
         double bottleNeckHeight = 11.0;
 
         _scene.geometries.add(
-                // 1. גוף הבקבוק
+                // 1. Bottle body
                 new Cylinder(bottleBodyRadius, new Ray(new Point(bottleX, bottleBaseY, bottleZ), upVector), bottleBodyHeight)
                         .setEmission(glassColor).setMaterial(glassMat),
 
-                // 2. יין בתוך הבקבוק
+                // 2. Wine inside the bottle
                 new Cylinder(bottleBodyRadius - 0.5, new Ray(new Point(bottleX, bottleBaseY + 0.3, bottleZ), upVector), bottleBodyHeight * 0.83)
                         .setEmission(drinkDeepPurple).setMaterial(drinkMat),
 
-                // 3. צוואר הבקבוק
+                // 3. Bottle neck
                 new Cylinder(bottleNeckRadius, new Ray(new Point(bottleX, bottleBaseY + bottleBodyHeight, bottleZ), upVector), bottleNeckHeight)
                         .setEmission(glassColor).setMaterial(glassMat)
         );
 
         // ======================================================================
-        // 2.7.6 בניית קערה עמוקה וגדולה בודדת - גרסה מאוזנת בגוון חום-טרקוטה מט
+        // 2.7.6 Build a single deep, large bowl - Balanced version in a matte terracotta-brown tone
         // ======================================================================
         double bowlX = 40.0;
         double bowlZ = -10.0;
@@ -305,13 +305,13 @@ public class CheckerboardTest3 {
         double bowlStepHeight = 1.4;
         int radialSegmentsBowl = 14;
 
-        // א. קרקעית הקערה
+        // A. Bowl bottom
         _scene.geometries.add(
                 new Cylinder(bowlInnerRadius, new Ray(new Point(bowlX, bowlBaseY, bowlZ), upVector), 0.5)
                         .setEmission(porcelainSoftBrown).setMaterial(porcelainMat)
         );
 
-        // ב. הוספת משולשי הדפנות
+        // B. Add side triangles
         for (int s = 0; s < bowlRimSteps; s++) {
             double yStart = bowlBaseY + (s * bowlStepHeight);
             double yEnd = yStart + bowlStepHeight;
@@ -385,7 +385,9 @@ public class CheckerboardTest3 {
                         .setKl(3E-5).setKq(1E-7)
         );
 
-        // 4. CAMERA SETUP WITH BVH ACCELERATION
+        // 4. CAMERA SETUP WITH BVH ACCELERATION AND DEPTH OF FIELD
+        // Using an aperture size of 10.0 creates a visual blur effect (Depth of Field)
+        // for objects outside the focal plane, simulating a real-world camera lens.
         Camera.getBuilder()
                 .setRayTracer(_scene, RayTracerType.SIMPLE)
                 .setLocation(new Point(210.0, 210.0, 280.0))
@@ -398,7 +400,7 @@ public class CheckerboardTest3 {
                 .setRootSamples(9)
                 .setMultithreading(-2)
                 .setDebugPrint(1.0)
-                .setBVH(true) // השורה החדשה שמפעילה את האצת ה-BVH לסצנה המורכבת הזו!
+                .setBVH(true) // Enabling BVH acceleration for this complex scene
                 .build()
                 .renderImage()
                 .writeToImage("3DCheckerboard_With_Selective_DoF");

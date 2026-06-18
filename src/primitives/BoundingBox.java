@@ -7,7 +7,7 @@ public class BoundingBox {
     public final Point min;
     public final Point max;
 
-    // וקטורי יחידה עזר לחילוץ רכיבים ללא גישה ל-_xyz
+    // Unit vectors to extract components without direct access to _xyz
     private static final Vector V_X = new Vector(1, 0, 0);
     private static final Vector V_Y = new Vector(0, 1, 0);
     private static final Vector V_Z = new Vector(0, 0, 1);
@@ -23,12 +23,12 @@ public class BoundingBox {
     public BoundingBox union(BoundingBox other) {
         if (other == null) return this;
 
-        // הגדרה של וקטורי יחידה (אפשר לשים כקבועים במחלקה)
+        // Definition of unit vectors
         Vector vx = new Vector(1, 0, 0);
         Vector vy = new Vector(0, 1, 0);
-        Vector vz = new Vector(0, 0, 1);
+        Vector vz = new Vector(0, 1, 0);
 
-        // חילוץ ערכים באמצעות dotProduct בטוח
+        // Extract values using safe dotProduct
         double minX = Math.min(this.min.subtract(Point.ZERO).dotProduct(vx), other.min.subtract(Point.ZERO).dotProduct(vx));
         double minY = Math.min(this.min.subtract(Point.ZERO).dotProduct(vy), other.min.subtract(Point.ZERO).dotProduct(vy));
         double minZ = Math.min(this.min.subtract(Point.ZERO).dotProduct(vz), other.min.subtract(Point.ZERO).dotProduct(vz));
@@ -37,7 +37,7 @@ public class BoundingBox {
         double maxY = Math.max(this.max.subtract(Point.ZERO).dotProduct(vy), other.max.subtract(Point.ZERO).dotProduct(vy));
         double maxZ = Math.max(this.max.subtract(Point.ZERO).dotProduct(vz), other.max.subtract(Point.ZERO).dotProduct(vz));
 
-        // הוספת "אפסילון" קטן לכל צד כדי למנוע חסימה של קרניים שעוברות בדיוק על שפת הקופסה
+        // Add a small epsilon to each side to prevent blocking rays passing exactly on the box boundary
         double eps = 1e-7;
 
         return new BoundingBox(
@@ -58,8 +58,8 @@ public class BoundingBox {
      * Ray-AABB intersection test using the Slab Method.
      */
     public boolean isIntersected(Ray ray) {
-        // 1. הוספת מרווח ביטחון (Padding) למניעת בעיות דיוק
-        double eps = 1e-4; // מרווח קטן מאוד שמונע מהקופסה להיות "צפופה" מדי
+        // 1. Add padding to prevent precision issues
+        double eps = 1e-4; // Small margin to prevent the box from being too "tight"
 
         double xMin = min.subtract(Point.ZERO).dotProduct(V_X) - eps;
         double xMax = max.subtract(Point.ZERO).dotProduct(V_X) + eps;
@@ -79,7 +79,7 @@ public class BoundingBox {
         double dy = dir.dotProduct(V_Y);
         double dz = dir.dotProduct(V_Z);
 
-        // 2. בדיקה האם המצלמה בתוך הקופסה (כולל ה-eps)
+        // 2. Check if the camera is inside the box (including the eps)
         if (ox >= xMin && ox <= xMax && oy >= yMin && oy <= yMax && oz >= zMin && oz <= zMax) {
             return true;
         }
@@ -87,7 +87,7 @@ public class BoundingBox {
         double tMin = Double.NEGATIVE_INFINITY;
         double tMax = Double.POSITIVE_INFINITY;
 
-        // ציר X
+        // X axis
         if (Math.abs(dx) > 1e-10) {
             double tx1 = (xMin - ox) / dx;
             double tx2 = (xMax - ox) / dx;
@@ -95,7 +95,7 @@ public class BoundingBox {
             tMax = Math.min(tMax, Math.max(tx1, tx2));
         } else if (ox < xMin || ox > xMax) return false;
 
-        // ציר Y
+        // Y axis
         if (Math.abs(dy) > 1e-10) {
             double ty1 = (yMin - oy) / dy;
             double ty2 = (yMax - oy) / dy;
@@ -103,7 +103,7 @@ public class BoundingBox {
             tMax = Math.min(tMax, Math.max(ty1, ty2));
         } else if (oy < yMin || oy > yMax) return false;
 
-        // ציר Z
+        // Z axis
         if (Math.abs(dz) > 1e-10) {
             double tz1 = (zMin - oz) / dz;
             double tz2 = (zMax - oz) / dz;

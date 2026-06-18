@@ -53,7 +53,7 @@ public class Geometries extends Intersectable {
                 if (tempBox == null) {
                     tempBox = box;
                 } else {
-                    // חישוב המינימום והמקסימום ע"י השוואת הטלות
+                    // Calculate minimum and maximum by comparing projections
                     double minX = Math.min(tempBox.min.subtract(Point.ZERO).dotProduct(vX), box.min.subtract(Point.ZERO).dotProduct(vX));
                     double minY = Math.min(tempBox.min.subtract(Point.ZERO).dotProduct(vY), box.min.subtract(Point.ZERO).dotProduct(vY));
                     double minZ = Math.min(tempBox.min.subtract(Point.ZERO).dotProduct(vZ), box.min.subtract(Point.ZERO).dotProduct(vZ));
@@ -70,7 +70,7 @@ public class Geometries extends Intersectable {
             }
         }
 
-        // הוספת ה-Padding (הערך p)
+        // Add padding (value p)
         if (tempBox != null) {
             double p = 9.5;
             this.boundingBox = new BoundingBox(
@@ -99,7 +99,7 @@ public class Geometries extends Intersectable {
             if (this.boundingBox == null) return;
         }
 
-        // 1. נפריד מראש את הגופים: כאלו שיש להם קופסה וכאלו שאין להם
+        // 1. Separate geometries: those that have a bounding box and those that do not
         List<Intersectable> withBox = new ArrayList<>();
         List<Intersectable> withoutBox = new ArrayList<>();
 
@@ -111,21 +111,21 @@ public class Geometries extends Intersectable {
             }
         }
 
-        // אם אין מספיק גופים עם קופסה כדי לבנות היררכיה, אין טעם להמשיך בפיצול
+        // If there are not enough geometries with a box to build a hierarchy, no need to continue splitting
         if (withBox.size() <= 4) {
             return;
         }
 
-        // 2. נגדיר וקטורי יחידה עבור שלושת הצירים הראשיים
+        // 2. Define unit vectors for the three main axes
         Vector axisX = new Vector(1, 0, 0);
         Vector axisY = new Vector(0, 1, 0);
         Vector axisZ = new Vector(0, 0, 1);
 
-        // 3. נהפוך את נקודות המינימום והמקסימום של הקופסה לוקטורים מראשית הצירים
+        // 3. Convert the bounding box min and max points to vectors from the origin
         Vector vMax = this.boundingBox.max.subtract(Point.ZERO);
         Vector vMin = this.boundingBox.min.subtract(Point.ZERO);
 
-        // 4. חילוץ אורכי קצוות הקופסה בכל ציר בעזרת dotProduct
+        // 4. Extract box edge lengths on each axis using dotProduct
         double extX = vMax.dotProduct(axisX) - vMin.dotProduct(axisX);
         double extY = vMax.dotProduct(axisY) - vMin.dotProduct(axisY);
         double extZ = vMax.dotProduct(axisZ) - vMin.dotProduct(axisZ);
@@ -136,7 +136,7 @@ public class Geometries extends Intersectable {
 
         final int sortAxis = axis;
 
-        // 5. מיונים יתבצעו אך ורק על רשימת הגופים שיש להם קופסה
+        // 5. Sorting will only be performed on the list of geometries that have a bounding box
         withBox.sort((g1, g2) -> {
             BoundingBox b1 = g1.getBoundingBox();
             BoundingBox b2 = g2.getBoundingBox();
@@ -158,7 +158,7 @@ public class Geometries extends Intersectable {
             return Double.compare(c1, c2);
         });
 
-        // 6. פיצול רשימת הבעלי-קופסה לשתי קבוצות בני
+        // 6. Split the list of bounded geometries into two groups
         int mid = withBox.size() / 2;
         Geometries leftGroup = new Geometries();
         Geometries rightGroup = new Geometries();
@@ -173,11 +173,11 @@ public class Geometries extends Intersectable {
         leftGroup.refreshBoundingBox();
         rightGroup.refreshBoundingBox();
 
-        // ריצה רקורסיבית
+        // Recursive call
         leftGroup.buildBVH();
         rightGroup.buildBVH();
 
-        // 7. בנייה מחדש: גופים ללא קופסה (כמו צילינדרים) נשארים ברמה זו, והשאר הופכים לעץ
+        // 7. Reconstruction: geometries without a box (like cylinders) remain at this level, others become a tree
         this._geometries = new ArrayList<>(withoutBox);
         this._geometries.add(leftGroup);
         this._geometries.add(rightGroup);
@@ -210,20 +210,20 @@ public class Geometries extends Intersectable {
         return result;
     }
 
-    // עזר: בדיקה האם נקודת ההתחלה של הקרן בתוך הקופסה
+    // Helper: Checks if the ray's starting point is inside the bounding box
     private boolean isOriginInside(Ray ray, BoundingBox box) {
         Point origin = ray.origin();
-        double eps = 1e-4; // מרווח ביטחון
+        double eps = 1e-4; // Safety margin
 
-        // המרה של הנקודה לוקטור יחסית לראשית הצירים (כדי שאפשר יהיה לעשות dotProduct)
+        // Convert the point to a vector relative to the origin (to allow dotProduct)
         Vector p = origin.subtract(Point.ZERO);
 
-        // הגדרת וקטורי הצירים (אם אין לך משתנים גלובליים לזה)
+        // Define axis vectors (if no global variables are available for this)
         Vector vX = new Vector(1, 0, 0);
         Vector vY = new Vector(0, 1, 0);
         Vector vZ = new Vector(0, 0, 1);
 
-        // חילוץ הערכים לפי הטלה (Dot Product)
+        // Extract values via projection (Dot Product)
         double px = p.dotProduct(vX);
         double py = p.dotProduct(vY);
         double pz = p.dotProduct(vZ);

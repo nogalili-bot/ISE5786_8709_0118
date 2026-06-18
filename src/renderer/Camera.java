@@ -39,7 +39,7 @@ public class Camera implements Cloneable {
     private double printInterval = 0;
     private PixelManager pixelManager;
 
-    // שדה חדש עבור הפעלת/כיבוי האצת ה-BVH
+    // New field for toggling BVH acceleration
     private boolean useBVH = false;
 
     private Camera() {}
@@ -174,9 +174,9 @@ public class Camera implements Cloneable {
         }
 
         /**
-         * מתודת בילדר חדשה המאפשרת להדליק או לכבות את מנגנון ה-BVH ישירות מהטסטים.
-         * @param active true כדי להפעיל האצה, false כדי לכבות
-         * @return ה-Builder עצמו
+         * Builder method to enable or disable the BVH mechanism directly from tests.
+         * @param active true to enable acceleration, false to disable
+         * @return The builder itself
          */
         public Builder setBVH(boolean active) {
             this._camera.useBVH = active;
@@ -195,7 +195,7 @@ public class Camera implements Cloneable {
             }
             try {
                 Camera cloned = (Camera) _camera.clone();
-                cloned.useBVH = this._camera.useBVH; // העתקת דגל ה-BVH לאובייקט המשוכפל שמוחזר
+                cloned.useBVH = this._camera.useBVH; // Copy BVH flag to the cloned object
                 return cloned;
             } catch (CloneNotSupportedException e) {
                 return null;
@@ -241,17 +241,16 @@ public class Camera implements Cloneable {
     }
 
     public Camera renderImage() {
-        // רגע לפני הרינדור - עדכון הדגל הגלובלי במחלקת הבסיס ובניית עץ היררכיית הקופסאות אם האופציה מסומנת כדלוקה
+        // Update the global flag in the base class and build the bounding box hierarchy if enabled
         Intersectable.isBVHEnabled = this.useBVH;
 
         if (this.useBVH && _rayTracer != null && _rayTracer._scene != null && _rayTracer._scene.geometries != null) {
 
-            // נשתמש ב-Casting כדי לגשת למתודה buildBVH שקיימת ב-Geometries ולא ב-Intersectable
+            // Use casting to access the buildBVH method in Geometries
             if (_rayTracer._scene.geometries instanceof geometries.impl.Geometries geo) {
                 geo.buildBVH();
 
-                // שימוש ב-getBoundingBox() במקום בגישה ישירה לשדה,
-                // זה פותר את בעיית הזיהוי ב-Camera
+                // Use getBoundingBox() instead of direct field access
                 var rootBox = geo.getBoundingBox();
                 if (rootBox != null) {
                     System.out.println("Root Bounding Box - Min: " +
