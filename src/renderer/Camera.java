@@ -1,5 +1,6 @@
 package renderer;
 
+import geometries.api.Intersectable;
 import geometries.api.Intersectable.Intersection;
 import primitives.*;
 import static primitives.Util.*;
@@ -37,6 +38,9 @@ public class Camera implements Cloneable {
     private static final int SPARE_THREADS = 2;
     private double printInterval = 0;
     private PixelManager pixelManager;
+
+    // שדה חדש עבור הפעלת/כיבוי האצת ה-BVH
+    private boolean useBVH = false;
 
     private Camera() {}
 
@@ -169,6 +173,16 @@ public class Camera implements Cloneable {
             return this;
         }
 
+        /**
+         * מתודת בילדר חדשה המאפשרת להדליק או לכבות את מנגנון ה-BVH ישירות מהטסטים.
+         * @param active true כדי להפעיל האצה, false כדי לכבות
+         * @return ה-Builder עצמו
+         */
+        public Builder setBVH(boolean active) {
+            this._camera.useBVH = active;
+            return this;
+        }
+
         public Camera build() {
             checkResolution();
             checkLocationAndDirection();
@@ -180,7 +194,9 @@ public class Camera implements Cloneable {
                 _camera.sampler = new Sampler(this.rootSamples);
             }
             try {
-                return (Camera) _camera.clone();
+                Camera cloned = (Camera) _camera.clone();
+                cloned.useBVH = this._camera.useBVH; // העתקת דגל ה-BVH לאובייקט המשוכפל שמוחזר
+                return cloned;
             } catch (CloneNotSupportedException e) {
                 return null;
             }
@@ -225,6 +241,26 @@ public class Camera implements Cloneable {
     }
 
     public Camera renderImage() {
+        // רגע לפני הרינדור - עדכון הדגל הגלובלי במחלקת הבסיס ובניית עץ היררכיית הקופסאות אם האופציה מסומנת כדלוקה
+        Intersectable.isBVHEnabled = this.useBVH;
+
+        if (this.useBVH && _rayTracer != null && _rayTracer._scene != null && _rayTracer._scene.geometries != null) {
+
+            // נשתמש ב-Casting כדי לגשת למתודה buildBVH שקיימת ב-Geometries ולא ב-Intersectable
+            if (_rayTracer._scene.geometries instanceof geometries.impl.Geometries geo) {
+                geo.buildBVH();
+
+                // שימוש ב-getBoundingBox() במקום בגישה ישירה לשדה,
+                // זה פותר את בעיית הזיהוי ב-Camera
+                var rootBox = geo.getBoundingBox();
+                if (rootBox != null) {
+                    System.out.println("Root Bounding Box - Min: " +
+                            rootBox.min.subtract(Point.ZERO) +
+                            ", Max: " + rootBox.max.subtract(Point.ZERO));
+                }
+            }
+        }
+
         pixelManager = new PixelManager(nY, nX, printInterval);
         switch (threadsCount) {
             case 0 -> renderImageNoThreads();
@@ -310,11 +346,14 @@ public class Camera implements Cloneable {
 
         double weight = 0.0;
 
+        // Calculate the weight factor based on the distance from the focal plane
+        // Objects outside the sharp range get blurred based on their depth
         if (depth < minSharpDepth) {
             weight = (minSharpDepth - depth) / transitionRange;
         } else if (depth > maxSharpDepth) {
             weight = (depth - maxSharpDepth) / transitionRange;
         }
+
 
         if (weight > 1.0) weight = 1.0;
         if (weight < 0.0) weight = 0.0;
@@ -330,15 +369,20 @@ public class Camera implements Cloneable {
         int raysToRun = (offsets != null) ? offsets.size() / 2 : 0;
         if (raysToRun < 1) raysToRun = 1;
 
+        // Adjust the aperture size dynamically based on the calculated blur weight
+        // A larger weight results in a wider aperture, creating a stronger blur effect
+
         double dynamicAperture = apertureSize * weight;
 
         Point pFocal = primaryRay.getPoint(focalDistance);
         Color bkgColor = Color.BLACK;
 
+        // Iterate through all samples to create a beam of rays for Depth of Field
         for (int r = 0; r < raysToRun; r++) {
             Offset2D offset = offsets.get(r);
-            Point pSample = p0;
+            Point pSample = p0; // The original camera center
 
+            // Calculate the offset on the lens aperture based on sample points
             if (!isZero(offset.x())) {
                 pSample = pSample.add(vRight.scale(offset.x() * dynamicAperture));
             }
@@ -346,9 +390,12 @@ public class Camera implements Cloneable {
                 pSample = pSample.add(vUp.scale(offset.y() * dynamicAperture));
             }
 
+            // Calculate the direction vector from the sampled point on the lens
+            // to the focal point on the focal plane
             Vector beamDirection = pFocal.subtract(pSample).normalize();
             Ray secondaryRay = new Ray(pSample, beamDirection);
 
+            // Accumulate the color result from the ray tracer
             bkgColor = bkgColor.add(_rayTracer.traceRay(secondaryRay));
         }
 

@@ -8,6 +8,8 @@ import java.util.List;
 
 import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
+import primitives.BoundingBox;
+
 import static geometries.api.Intersectable.Intersection;
 
 /**
@@ -26,6 +28,11 @@ public class Cylinder extends Tube {
     public Cylinder(double radius, Ray axis, double height) {
         super(radius, axis);
         this._height = height;
+
+        // צילינדר כללי במרחב דורש חישוב קופסה מורכב שעלול לעוות את התמונה.
+        // נשאיר את הקופסה שלו כ-null; המערכת תחשב עבורו חיתוך רגיל,
+        // וה-BVH עדיין יאיץ את מאות המשולשים שבסצנה בצורה פנומנלית!
+        this.boundingBox = null;
     }
 
     /**

@@ -5,6 +5,7 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 import java.util.List;
+import primitives.BoundingBox;
 
 import static primitives.Util.alignZero;
 import static geometries.api.Intersectable.Intersection;
@@ -24,6 +25,11 @@ public class Sphere extends RadialGeometry {
     public Sphere(Point center, double radius) {
         super(radius);
         this._center = center;
+        Vector delta = new Vector(radius, radius, radius);
+        this.boundingBox = new BoundingBox(
+                center.add(delta.scale(-1)), // נקודת המינימום (נעה אחורה ושמאלה)
+                center.add(delta)            // נקודת המקסימום (נעה קדימה וימינה)
+        );
     }
 
     /**

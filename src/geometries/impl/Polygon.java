@@ -24,6 +24,7 @@ public class Polygon extends Geometry {
      * @param vertices vertices of the polygon in order
      * @throws IllegalArgumentException if vertices are not valid
      */
+
     public Polygon(Point... vertices) {
         if (vertices.length < 3)
             throw new IllegalArgumentException("Polygon must have at least 3 vertices");
